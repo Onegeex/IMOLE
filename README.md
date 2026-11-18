@@ -10,7 +10,7 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 
 | | |
 |---|---|
-| Live app | `https://<your-vercel-url>` |
+| Live app | https://imole-ten.vercel.app |
 | Demo video | `<link>` |
 | ImolePAYG (QIE Mainnet) | `0x…` (verified) |
 | ImoleKYC (QIE Mainnet) | `0x…` (verified) |
