@@ -112,6 +112,8 @@ firmware/    ESP32 controller sketch + Wokwi diagram
 ### Contracts
 
 ```bash
+./setup.sh            # first time only, if you got this as a zip: pulls forge-std and OpenZeppelin v5.0.2
+# (if you cloned from GitHub instead: git submodule update --init --recursive)
 cd contracts
 forge test            # 26 tests
 ```
