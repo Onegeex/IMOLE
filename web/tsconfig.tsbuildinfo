@@ -1,0 +1,1 @@
+{"root":["./src/chain.ts","./src/config.ts","./src/main.tsx","./src/wallet.tsx","./src/abi/ImoleKYC.ts","./src/abi/ImolePAYG.ts","./src/components/Meter.tsx","./src/components/Shell.tsx","./src/pages/Home.tsx","./src/pages/Installer.tsx","./src/pages/KitPage.tsx","./src/pages/Mine.tsx"],"version":"5.9.3"}

@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "author": "Imole",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -150, "left": 140, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-relay-module", "id": "relay", "top": 60, "left": 220, "attrs": {} },
+    { "type": "wokwi-led", "id": "ledOn", "top": 160, "left": 190, "attrs": { "color": "green" } },
+    { "type": "wokwi-led", "id": "ledDue", "top": 160, "left": 240, "attrs": { "color": "red" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 220, "left": 180, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": 220, "left": 230, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "bulb", "top": 40, "left": 380, "attrs": { "color": "yellow", "label": "Load" } },
+    { "type": "wokwi-resistor", "id": "r3", "top": 120, "left": 380, "rotate": 90, "attrs": { "value": "220" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "lcd:GND", "esp:GND.2", "black", [] ],
+    [ "lcd:VCC", "esp:5V", "red", [] ],
+    [ "lcd:SDA", "esp:21", "green", [] ],
+    [ "lcd:SCL", "esp:22", "blue", [] ],
+    [ "relay:VCC", "esp:5V", "red", [] ],
+    [ "relay:GND", "esp:GND.2", "black", [] ],
+    [ "relay:IN", "esp:26", "orange", [] ],
+    [ "esp:2", "r1:1", "green", [] ],
+    [ "r1:2", "ledOn:A", "green", [] ],
+    [ "ledOn:C", "esp:GND.1", "black", [] ],
+    [ "esp:4", "r2:1", "red", [] ],
+    [ "r2:2", "ledDue:A", "red", [] ],
+    [ "ledDue:C", "esp:GND.1", "black", [] ],
+    [ "esp:3V3", "relay:COM", "red", [] ],
+    [ "relay:NO", "r3:1", "yellow", [] ],
+    [ "r3:2", "bulb:A", "yellow", [] ],
+    [ "bulb:C", "esp:GND.3", "black", [] ]
+  ],
+  "dependencies": {}
+}
