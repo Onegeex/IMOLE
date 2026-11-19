@@ -76,6 +76,26 @@ int rpcIndex = 0, strikes = 0;
 String entry = "", message = "";
 
 // ---------------------------------------------------------------- helpers
+// Unix time when this firmware was compiled (__DATE__/__TIME__, UTC on Wokwi's
+// build server). The clock never starts earlier than this, so a fresh controller
+// that boots offline doesn't think it's still 1 Jan 2026. Real kits add a
+// battery-backed RTC (e.g. DS3231) for this.
+uint64_t buildEpoch() {
+  const char* d = __DATE__;  // "Nov 19 2026"
+  const char* t = __TIME__;  // "17:45:03"
+  const char* months = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  int mon = (strstr(months, String(d).substring(0, 3).c_str()) - months) / 3 + 1;
+  int day = atoi(d + 4), year = atoi(d + 7);
+  int hh = atoi(t), mm = atoi(t + 3), ss = atoi(t + 6);
+  // days from civil (Howard Hinnant's algorithm)
+  int y = year - (mon <= 2);
+  int era = y / 400, yoe = y - era * 400;
+  int doy = (153 * (mon + (mon > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+  int doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+  int64_t days = (int64_t)era * 146097 + doe - 719468;
+  return (uint64_t)(days * 86400 + hh * 3600 + mm * 60 + ss);
+}
+
 uint64_t nowEpoch() { return syncEpoch + (millis() - syncMillis) / 1000; }
 bool online() { return digitalRead(PIN_NET) == HIGH && WiFi.status() == WL_CONNECTED; }
 
@@ -244,12 +264,14 @@ void setup() {
 
   hexToBytes(DEVICE_KEY_HEX, deviceKey, 32);
   Serial.printf("[selftest] %s\n", selfTest() ? "ok" : "FAILED");
+  Serial.printf("[clock] start %llu (build %llu)\n", (unsigned long long)syncEpoch, (unsigned long long)buildEpoch());
 
   prefs.begin("imole", false);
   owned = prefs.getBool("owned", false);
   unlockUntil = prefs.getULong64("until", 0);
   bestT10 = prefs.getULong("t10", 0);
   syncEpoch = prefs.getULong64("clock", EPOCH);  // last known time; corrected at the next chain read
+  if (syncEpoch < buildEpoch()) syncEpoch = buildEpoch();
   syncMillis = millis();
 
   WiFi.mode(WIFI_STA);
