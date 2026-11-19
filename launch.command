@@ -78,8 +78,20 @@ ask_pw deployer; DEPLOYER_PASSWORD=$PW; DEPLOYER=$ADDR
 ask_pw customer; CUSTOMER_PASSWORD=$PW; CUSTOMER=$ADDR
 export DEPLOYER_PASSWORD CUSTOMER_PASSWORD
 
-[ "$(echo "$DEPLOYER" | tr A-F a-f)" = "$(echo "$CUSTOMER" | tr A-F a-f)" ] && \
-  fail "Both names hold the SAME wallet. Delete $KS/imole-customer, run this again, and use your second wallet's key."
+same() { [ "$(echo "$DEPLOYER" | tr A-F a-f)" = "$(echo "$CUSTOMER" | tr A-F a-f)" ]; }
+while same; do
+  say "Both names hold the SAME wallet: $DEPLOYER"
+  echo "Check this address in QIE Wallet."
+  read -r -p "Is $DEPLOYER your MAIN wallet (about 5 QIE)? [y/n] " a
+  if [[ "$a" =~ ^[Yy] ]]; then
+    mv "$KS/imole-customer" "$KS/imole-customer.old-$(date +%s)"; import_role customer
+    ask_pw customer; CUSTOMER_PASSWORD=$PW; CUSTOMER=$ADDR
+  else
+    mv "$KS/imole-deployer" "$KS/imole-deployer.old-$(date +%s)"; import_role deployer
+    ask_pw deployer; DEPLOYER_PASSWORD=$PW; DEPLOYER=$ADDR
+  fi
+  export DEPLOYER_PASSWORD CUSTOMER_PASSWORD
+done
 
 BD=$(cast balance "$DEPLOYER" --ether --rpc-url "$RPC") || fail "Can't reach QIE Mainnet. Check your internet."
 BC=$(cast balance "$CUSTOMER" --ether --rpc-url "$RPC")
