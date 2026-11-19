@@ -14,7 +14,7 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 | Demo video | `<link>` |
 | ImolePAYG (QIE Mainnet) | [`0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD`](https://mainnet.qie.digital/address/0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD) |
 | ImoleKYC (QIE Mainnet) | [`0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1`](https://mainnet.qie.digital/address/0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1) |
-| Controller simulation | `<wokwi project link>` |
+| Controller simulation | https://wokwi.com/projects/481132098048003073 |
 
 ## Judges: start here
 
