@@ -114,13 +114,36 @@ Tested end to end on mainnet (19 Nov 2026): kit 2 was paid on-chain, the live se
 
 Trust: the code service holds the key that derives device keys, so it's a trusted component, like the KYC attester. It can't move money, and it only issues codes for time the chain says is paid. The demo kit's device key is public in the Wokwi sketch so judges can try it; real kits get private keys.
 
+## Paying in cash
+
+Most customers will never touch a wallet. There are three ways their money reaches the chain:
+
+1. **The installer is the agent (built).** The customer hands the installer cash. The installer tops up the kit from a small QUSDC float on the [Top up screen](https://imole-ten.vercel.app/#/agent), and the contract sends 99% straight back to the installer in the same transaction. Taking ₦2,000 in cash costs the installer's float 1% (about 0.015 QUSDC). They keep the cash, so a float of a few dollars serves hundreds of top-ups. The screen shows this when the connected wallet is the kit's own installer.
+2. **A shop or kiosk is the agent (built).** Same screen, but the agent's float is really spent, so they keep a margin on the cash price, as with airtime. They refill the float by swapping QIE on QIEDEX in one tap, or buying QUSDC.
+3. **Mobile money, no agent (prototype).** The customer pays with mobile money or a card through a payment partner. The partner calls [`/api/momo`](web/api/momo.ts), which checks the partner's signature, converts the local amount at today's rate, pays the kit from the installer's float wallet on QIE and returns the new keypad code, ready to send by SMS. It follows Paystack's webhook format. On the live site it runs as a dry run (no float wallet is configured, so it reports what it would pay); the full path is tested on a local chain by `npx tsx web/scripts/test-momo.mts`: a signed ₦2,000 payment becomes 1.333333 QUSDC, about a day of power and a working code, and bad signatures and repeated payments are refused. Going live needs a payment-partner account and an SMS provider.
+
+## Protecting the installer
+
+What stops a customer from getting power they didn't pay for:
+
+| Attempt | What happens |
+|---|---|
+| Unplug or power-cycle the controller | The relay is open when unpowered, so the kit is off. Paid time and the clock are saved every minute and the clock never starts before the firmware's build time. |
+| Share or reuse a code | Codes are signed with the kit's own key, so another kit's code fails. The controller only accepts a code newer than the last one. |
+| Guess codes | Five wrong codes lock the keypad for ten minutes. |
+| Open the case to rewire it | A lid switch locks the kit (`LOCKED tamper #1`) until the installer checks it and enters a one-time reset code, made on the Installers screen from the kit's device key. Paid time isn't lost. Each reset code works for one tamper event only. |
+| Stop paying | After the overdue period agreed at signing, the installer can repossess. The kit is an NFT held by the contract until the last payment. |
+| Disappear with the kit | Every plan is tied to an ID check (QIE Pass or in person). |
+
+The honest gap: someone who opens the case and wires the panel straight to the load skips any controller. Production kits close it in hardware, as Sun King and Bboxx do: the controller goes inside the battery pack or inverter so bypassing it disables the battery, and a battery-backed clock replaces the build-time floor. The Wokwi controller shows the logic; the enclosure is a manufacturing step.
+
 ## What Imole doesn't solve
 
 Being honest about the hard parts of pay-as-you-go solar:
 
 - **Hardware, logistics and field operations.** Sourcing kits, installing them, maintenance, customer support and physically recovering kits after a default all stay with the installer. Imole handles payments, lock-out rules and ownership, not trucks and technicians.
-- **Physical tampering.** A determined owner can bypass any relay by rewiring, as with every pay-as-you-go system. The deterrents are the repossession right and losing the kit NFT, not the electronics.
-- **Agent liquidity.** Agents need a QUSDC float. The agent screen can refill it in one tap by swapping QIE on QIEDEX, but turning collected cash into QIE or QUSDC, and back, still goes through an exchange or OTC desk. Mobile-money on- and off-ramps are the next integration and need a licensed partner.
+- **Physical tampering.** The lid switch catches opening the case, but someone determined can still bypass a separate controller by rewiring. Production kits put the controller inside the battery pack (see [Protecting the installer](#protecting-the-installer)).
+- **Agent liquidity.** An installer topping up their own customers barely needs a float (each top-up costs them 1%). Third-party agents spend real float and refill it by swapping QIE on QIEDEX or buying QUSDC, which still goes through an exchange or OTC desk. The mobile-money webhook is a working prototype; going live needs a licensed payment partner.
 - **Credit risk.** Imole enforces the terms an installer chooses; it doesn't decide who should get credit. An on-chain payment history is the start of a credit record, not a credit score.
 - **Traction.** At submission this is one demo kit plus early pilots, not a network. The numbers on the home page are live and unedited.
 
@@ -194,7 +217,7 @@ Deploy to Vercel as a static Vite site, with the same environment variables. The
 2. Replace `sketch.ino` with [`firmware/imole-controller/imole-controller.ino`](firmware/imole-controller/imole-controller.ino), `diagram.json` with ours, and add the `LiquidCrystal I2C` and `Keypad` libraries (listed in `libraries.txt`).
 3. Set `PAYG_ADDRESS`, `KIT_ID` and `DEVICE_KEY_HEX` at the top of the sketch, then press play.
 
-The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. To see offline mode, slide the **Internet** switch off, get kit 2's code from the app, and type it on the keypad followed by `#`. On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD, a 4×4 keypad and two LEDs, and you set your own Wi-Fi.
+The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. To see offline mode, slide the **Internet** switch off, get kit 2's code from the app, and type it on the keypad followed by `#`. To see tamper protection, slide **Case lid** to open: the kit locks. Close it and enter the reset code from the Installers screen (for the public demo key, tamper #1 on kit 2 is `5497 5570 3440`). On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD, a 4×4 keypad and two LEDs, and you set your own Wi-Fi.
 
 ## Business model
 

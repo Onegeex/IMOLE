@@ -19,6 +19,7 @@
     SDA 21 / SCL 22 -> 16x2 I2C LCD, address 0x27
     Keypad rows 13 12 14 27, columns 25 33 32 23   (* = clear, # = enter)
     GPIO 15 -> "Internet" slide switch to GND (demo only: slide it to simulate no internet)
+    GPIO 18 -> case lid switch to GND (closed). Opening the case locks the kit until an installer reset code.
 
   The paid-up time counts down locally between reads, so pulling the antenna doesn't keep a
   kit on for free. A paid-off kit unlocks permanently.

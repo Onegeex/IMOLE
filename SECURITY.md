@@ -46,3 +46,9 @@ No high-severity findings. Medium and low findings, triaged:
 ## Reporting
 
 Open a GitHub issue marked `security`, or contact the maintainer privately through the repository owner's profile.
+
+## Controller and off-chain services
+
+- **Tamper lid.** Opening the case locks the kit until a reset code made from the kit's device key with the current tamper count, so each reset code works once. Reset codes use a reserved time value (2^23 - 2) that the public code service never issues. Shared test vector: `web/scripts/test-codes.mts` and the firmware's boot self-test.
+- **Keypad brute force.** 16-bit MACs with five tries per ten minutes: on average about 45 days of continuous guessing per valid code, for one kit only. Production kits can widen the code or slow the lockout further.
+- **Mobile-money webhook (`web/api/momo.ts`).** Requests must carry a valid HMAC-SHA512 signature from the payment partner. Without a float-wallet key it only reports what it would pay. Processed references are kept in memory, so production needs a persistent store before the float wallet is funded. Tested end to end on a local chain (`web/scripts/test-momo.mts`).
