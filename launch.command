@@ -33,6 +33,32 @@ fi
 ok "Foundry $(forge --version | head -1 | awk '{print $3}')"
 mkdir -p "$KS"
 
+import_role() { # $1 role
+  if [ "$1" = deployer ]; then what="MAIN wallet (about 5 QIE)"; else what="SECOND wallet (about 3 QIE)"; fi
+  say "Add your $what"
+  echo "Paste its private key from QIE Wallet and press Enter (nothing will appear as you paste)."
+  echo "Then make up a password for it. Foundry asks only ONCE, so type it carefully."
+  cast wallet import "imole-$1" --interactive || fail "Import of imole-$1 failed."
+}
+ask_pw() { # $1 role -> sets PW and ADDR
+  local tries=0 err
+  while true; do
+    read -r -s -p "Password for imole-$1: " PW; echo
+    if ADDR=$(cast wallet address --account "imole-$1" --password "$PW" 2>/tmp/imole-unlock.err); then return 0; fi
+    err=$(head -c 300 /tmp/imole-unlock.err | tr '\n' ' ')
+    echo "That didn't unlock imole-$1. (Foundry said: $err)"
+    log "unlock failed for imole-$1: $err"
+    tries=$((tries+1))
+    if [ $tries -ge 2 ]; then
+      read -r -p "Re-import imole-$1 with a new password instead? You'll need its private key. [y/n] " a
+      if [[ "$a" =~ ^[Yy] ]]; then
+        mv "$KS/imole-$1" "$KS/imole-$1.old-$(date +%s)" && import_role "$1"; tries=0
+      elif [ $tries -ge 4 ]; then
+        fail "Couldn't unlock imole-$1."
+      fi
+    fi
+  done
+}
 # ---------------------------------------------------------------- wallet names
 if [ -f "$KS/imole-customer" ] && [ ! -f "$KS/imole-deployer" ]; then
   say "You have one saved wallet, called imole-customer."
@@ -43,25 +69,10 @@ if [ -f "$KS/imole-customer" ] && [ ! -f "$KS/imole-deployer" ]; then
 fi
 
 for role in deployer customer; do
-  if [ ! -f "$KS/imole-$role" ]; then
-    if [ "$role" = deployer ]; then what="MAIN wallet (about 5 QIE)"; else what="SECOND wallet (about 3 QIE)"; fi
-    say "Add your $what"
-    echo "Paste its private key from QIE Wallet and press Enter (nothing will appear as you paste)."
-    echo "Then make up a password for it and type it twice."
-    cast wallet import "imole-$role" --interactive || fail "Import of imole-$role failed."
-  fi
+  [ -f "$KS/imole-$role" ] || import_role "$role"
 done
 
 # ---------------------------------------------------------------- passwords + addresses
-ask_pw() { # $1 role -> sets PW and ADDR
-  local tries=0
-  while [ $tries -lt 3 ]; do
-    read -r -s -p "Password for imole-$1: " PW; echo
-    ADDR=$(cast wallet address --account "imole-$1" --password "$PW" 2>/dev/null) && return 0
-    echo "That password didn't unlock imole-$1. Try again."; tries=$((tries+1))
-  done
-  fail "Couldn't unlock imole-$1. If you forgot the password, delete $KS/imole-$1 and run this again."
-}
 say "Unlock your wallets"
 ask_pw deployer; DEPLOYER_PASSWORD=$PW; DEPLOYER=$ADDR
 ask_pw customer; CUSTOMER_PASSWORD=$PW; CUSTOMER=$ADDR
