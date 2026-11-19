@@ -29,7 +29,7 @@
 // ---------------------------------------------------------------- configure me
 const char* WIFI_SSID = "Wokwi-GUEST";  // Wokwi's simulated network; use your own on real hardware
 const char* WIFI_PASS = "";
-const char* PAYG_ADDRESS = "0x0000000000000000000000000000000000000000";  // ImolePAYG on QIE Mainnet
+const char* PAYG_ADDRESS = "0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD";  // ImolePAYG on QIE Mainnet
 const uint32_t KIT_ID = 1;
 const uint32_t POLL_MS = 30000;
 // ------------------------------------------------------------------------------

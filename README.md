@@ -12,8 +12,8 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 |---|---|
 | Live app | https://imole-ten.vercel.app |
 | Demo video | `<link>` |
-| ImolePAYG (QIE Mainnet) | `0x…` (verified) |
-| ImoleKYC (QIE Mainnet) | `0x…` (verified) |
+| ImolePAYG (QIE Mainnet) | [`0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD`](https://mainnet.qie.digital/address/0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD) |
+| ImoleKYC (QIE Mainnet) | [`0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1`](https://mainnet.qie.digital/address/0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1) |
 | Controller simulation | `<wokwi project link>` |
 
 ## Judges: start here
@@ -42,11 +42,13 @@ These transactions were sent on purpose to show the contract refusing an install
 
 | What was tried | Result | Transaction |
 |---|---|---|
-| Installer repossesses a customer who is paid up | Reverted `NotOverdue` | `0x…` |
-| Installer cancels a plan after the customer accepted | Reverted `WrongStatus` | `0x…` |
-| Customer marks themselves as ID-verified | Reverted `NotAttester` | `0x…` |
+| Installer repossesses a customer who is paid up | Reverted `NotOverdue` | [`0x372b…ffe5`](https://mainnet.qie.digital/tx/0x372bb75d522369afd955ea749eda368e3e3a69387e8c5cf979de3ec93059ffe5) |
+| Installer cancels a plan after the customer accepted | Reverted `WrongStatus` | [`0x7622…7ee0`](https://mainnet.qie.digital/tx/0x76226c17e6e211505616e33a7ddd7cda66682efd450120e18377364f19447ee0) |
+| Customer marks themselves as ID-verified | Reverted `NotAttester` | [`0xbcdf…0c4e`](https://mainnet.qie.digital/tx/0xbcdf015568cedfc12cfb845872033736becd1d7d63be5b94ce6727f46f580c4e) |
 
-Run `contracts/script/demo.sh` to produce these on your own deployment.
+The same run also recorded the happy path: the customer [accepted the plan](https://mainnet.qie.digital/tx/0x2d2e6a0dc0805072f2c5df2d78532a68bdf7252e6437770bc5db7d3fa34db38d), then [paid 1 QIE](https://mainnet.qie.digital/tx/0x4640c6dcd8c8f9369cb4ce8eae05bcadbc5cfbeb3839f119fb3df3588bc7301e). QIEDEX swapped it to 0.1635 QUSDC, 99% went straight to the installer and 1% to the treasury, and the kit gained 32 minutes of power.
+
+Run `contracts/script/demo.sh` (or `launch.command`) to produce these on your own deployment.
 
 ## How it uses QIE
 
