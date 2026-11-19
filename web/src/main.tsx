@@ -7,6 +7,7 @@ import { Home } from "./pages/Home";
 import { KitPage } from "./pages/KitPage";
 import { Installer } from "./pages/Installer";
 import { Mine } from "./pages/Mine";
+import { Agent } from "./pages/Agent";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/kit/:id" element={<KitPage />} />
             <Route path="/installer" element={<Installer />} />
             <Route path="/mine" element={<Mine />} />
+            <Route path="/agent" element={<Agent />} />
             <Route path="*" element={<p className="empty">That page doesn't exist. Go back to the home page to find a kit.</p>} />
           </Routes>
         </Shell>

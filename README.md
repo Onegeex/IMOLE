@@ -1,8 +1,8 @@
 # Imole: pay-as-you-go solar on QIE
 
-**Pay for light a week at a time. Own the solar kit at the end. Anywhere in the world.**
+**The settlement and trust layer under any installer's pay-as-you-go solar business.**
 
-Imole is open pay-as-you-go infrastructure that lets any solar installer, in any country, sell home solar kits on credit. Each kit is an NFT on QIE Mainnet with a fixed price. Every payment, in QUSDC or in QIE swapped on QIEDEX, buys days of power. An ESP32 controller on the kit reads the contract and switches the inverter output off when the paid-up time runs out. When the last payment lands, the NFT moves to the customer and the kit unlocks for good.
+Imole lets a solar installer sell home kits on credit without building their own payments, lock-out and credit stack. **Customers never need a crypto wallet:** they pay the installer or a local agent in cash or mobile money, as they already do, and the agent tops up the kit on-chain in one tap, like selling airtime. Each kit is an NFT on QIE Mainnet with a fixed price, and every payment buys days of power. The kit's controller switches the output off when the paid time runs out, either by reading the chain or, with no internet at the home, from a 12-digit code typed on its keypad. When the last payment lands, the NFT moves to the customer and the kit unlocks for good.
 
 *Imole* means "light" in Yoruba. Nothing in the protocol is tied to one country: prices are in QUSDC, payments can come from any wallet in the world, and the controller only needs an internet connection.
 
@@ -31,8 +31,10 @@ About **720 million people** still had no electricity at all in 2025, according 
 
 Pay-as-you-go solar, popularised by companies like M-KOPA and Sun King, is the proven fix: a household pays a deposit, then small regular amounts, and the kit locks itself when payments stop. It works, but only big companies with their own lock-out hardware, payment rails, local banking and credit teams can run it, and each one rebuilds that stack country by country.
 
-Imole turns that model into shared, global infrastructure that any local installer, anywhere, can plug into:
+Imole doesn't try to replace those companies or put crypto in front of their customers. It gives the thousands of small installers who can't build that stack the back end they're missing:
 
+- **Customers pay the way they already do.** Cash or mobile money to an agent or the installer, who tops up from a QUSDC float on the [agent screen](https://imole-ten.vercel.app/#/agent). The chain is the installer's settlement layer, not the customer's app.
+- **Works where there's no internet.** Like Sun King's and M-KOPA's keypad tokens, the controller accepts a 12-digit unlock code. Unlike theirs, a code can only cover time already paid on-chain, so nobody can sell power that wasn't paid for, and nobody can withhold power that was (the code endpoint is public).
 - **The lock-out logic is a public contract**, not a proprietary server. Installers don't need to build one, and customers don't need to trust one.
 - **Payments settle instantly in QUSDC** to the installer's wallet. No collections team, no 30-day settlement, no local bank integration per country.
 - **Anyone can pay for anyone, across borders.** A relative working in another country can open the kit's link and buy a month of light for their family at home: no remittance fees, no FX desk.
@@ -96,6 +98,28 @@ sequenceDiagram
 
 **The controller can't be gamed by going offline.** It counts the paid-up time down locally between reads. Unplugging the Wi-Fi keeps power on only for the time already paid for.
 
+## Offline unlock codes
+
+Off-grid homes often have no internet, so the controller can't always read the chain. Instead:
+
+1. The customer pays (cash to an agent, or on-chain directly).
+2. Anyone opens the kit's page or the agent screen and taps **Get code**. The service at `/api/code?kit=<n>` reads the kit's paid-up time from QIE Mainnet and returns a 12-digit code, which the agent reads out, writes down or sends by SMS.
+3. The customer types it on the kit's keypad and presses `#`. The controller checks it offline and switches on until the paid-up time.
+
+How a code works: it packs "powered until time T" (10-minute steps) with a 16-bit HMAC made with the kit's own device key. The controller only accepts a code that is newer than the one it holds, so old codes can't be replayed, and five wrong codes lock the keypad for ten minutes. Installers get each kit's device key from the Installers screen by signing a message with the wallet that listed the kit. The scheme is in [`web/api/_lib.ts`](web/api/_lib.ts) and mirrored in the firmware, with shared test vectors (`npx tsx web/scripts/test-codes.mts`, and the firmware's boot self-test).
+
+Trust: the code service holds the key that derives device keys, so it's a trusted component, like the KYC attester. It can't move money, and it only issues codes for time the chain says is paid. The demo kit's device key is public in the Wokwi sketch so judges can try it; real kits get private keys.
+
+## What Imole doesn't solve
+
+Being honest about the hard parts of pay-as-you-go solar:
+
+- **Hardware, logistics and field operations.** Sourcing kits, installing them, maintenance, customer support and physically recovering kits after a default all stay with the installer. Imole handles payments, lock-out rules and ownership, not trucks and technicians.
+- **Physical tampering.** A determined owner can bypass any relay by rewiring, as with every pay-as-you-go system. The deterrents are the repossession right and losing the kit NFT, not the electronics.
+- **Agent liquidity.** Agents need a QUSDC float and a way to turn cash back into QUSDC. Today that means an exchange or OTC desk; mobile-money on-ramps are the obvious next integration.
+- **Credit risk.** Imole enforces the terms an installer chooses; it doesn't decide who should get credit. An on-chain payment history is the start of a credit record, not a credit score.
+- **Traction.** At submission this is one demo kit plus early pilots, not a network. The numbers on the home page are live and unedited.
+
 ## Repository
 
 ```
@@ -107,7 +131,9 @@ contracts/   Foundry project
   script/Deploy.s.sol     mainnet deploy
   script/preflight.sh     read-only checks of QUSDC, oracle and QIEDEX before deploying
   script/demo.sh          seeds the demo kit and sends the trust-proof transactions
-web/         Vite + React + viem app (customer, relative and installer flows)
+web/         Vite + React + viem app (installer, agent, customer and family flows)
+  api/code.ts             offline unlock code service (Vercel function, reads the chain)
+  api/device-key.ts       gives an installer a kit's controller key after a signed check
 firmware/    ESP32 controller sketch + Wokwi diagram
 ```
 
@@ -161,15 +187,16 @@ Deploy to Vercel as a static Vite site, with the same environment variables. The
 ### Controller (Wokwi, no hardware needed)
 
 1. Open [wokwi.com](https://wokwi.com) and start a new ESP32 project.
-2. Replace `sketch.ino` with [`firmware/imole-controller/imole-controller.ino`](firmware/imole-controller/imole-controller.ino), `diagram.json` with ours, and add the `LiquidCrystal I2C` library (listed in `libraries.txt`).
-3. Set `PAYG_ADDRESS` and `KIT_ID` at the top of the sketch, then press play.
+2. Replace `sketch.ino` with [`firmware/imole-controller/imole-controller.ino`](firmware/imole-controller/imole-controller.ino), `diagram.json` with ours, and add the `LiquidCrystal I2C` and `Keypad` libraries (listed in `libraries.txt`).
+3. Set `PAYG_ADDRESS`, `KIT_ID` and `DEVICE_KEY_HEX` at the top of the sketch, then press play.
 
-The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD and two LEDs, and you set your own Wi-Fi.
+The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. To see offline mode, slide the **Internet** switch off, get kit 1's code from the app, and type it on the keypad followed by `#`. On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD, a 4×4 keypad and two LEDs, and you set your own Wi-Fi.
 
 ## Business model
 
 - **1% network fee** on every payment, to the Imole treasury. It's capped at 5% in the contract and can't be raised beyond that.
 - Installers keep 99% and get paid the moment a customer pays.
+- Agents earn the way airtime agents do: their own margin on the cash price they agree with the customer.
 - **Planned:** verified-installer badges (registered businesses), kit insurance, and receivables financing. A portfolio of paying kits on-chain is a credit record that lenders can see.
 
 ## Status and honest limitations

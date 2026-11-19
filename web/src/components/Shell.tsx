@@ -25,8 +25,9 @@ export function Shell({ children }: { children: ReactNode }) {
           Imole
         </Link>
         <nav>
-          <NavLink to="/mine">My kits</NavLink>
           <NavLink to="/installer">Installers</NavLink>
+          <NavLink to="/agent">Top up</NavLink>
+          <NavLink to="/mine">My kits</NavLink>
         </nav>
         {account ? (
           <span className="acct" title={walletName ?? ""}>

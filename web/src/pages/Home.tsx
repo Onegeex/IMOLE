@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Meter } from "../components/Meter";
 import { DEMO_KIT, deployed } from "../config";
 import { qusdcDecimals, readKitStatus, readStats } from "../chain";
@@ -42,15 +42,20 @@ export function Home() {
       <section className="hero">
         <div className="hero-copy">
           <h1 className="hero-title">
-            <span className="line">Pay for light a week at a time.</span>
-            <span className="line">Own the solar kit at the end.</span>
+            <span className="line">Sell solar on credit.</span>
+            <span className="line">Get paid the moment your customer pays.</span>
           </h1>
           <p className="lede">
-            Imole lets solar installers anywhere in the world sell kits on credit. Each payment on QIE buys days of power. The kit's
-            controller switches off when the time runs out, and unlocks for good once the kit is paid off.
+            Your customers keep paying the way they do now: cash or mobile money, to you or a local agent. Imole settles each
+            payment on QIE in seconds, switches the kit on (even where the home has no internet), and gives your customers
+            guarantees you can't break.
           </p>
+          <div className="cta-row">
+            <Link to="/installer" className="btn btn-primary">List your first kit</Link>
+            <Link to="/agent" className="btn btn-ghost">Top up a customer's kit</Link>
+          </div>
           <form className="lookup" onSubmit={go}>
-            <label htmlFor="kit">Pay for a kit</label>
+            <label htmlFor="kit">Have a kit? Enter its number</label>
             <div className="lookup-row">
               <input
                 id="kit"
@@ -86,30 +91,38 @@ export function Home() {
               caption="Example reading."
             />
           )}
+          {demo && !demo.active && demo.percentPaid < 100 && (
+            <Link to={`/kit/${DEMO_KIT}`} className="locked-cta">
+              Demo kit is locked: its paid time ran out. Pay 1 QIE to switch it back on.
+            </Link>
+          )}
         </div>
       </section>
 
       <section className="band">
-        <h2>How a kit gets paid off</h2>
+        <h2>How it works for an installer</h2>
         <ol className="steps">
           <li>
-            <h3>The installer fits the kit and lists it</h3>
-            <p>Panels, battery and inverter are recorded on QIE as a kit NFT, with a fixed price and a weekly amount.</p>
+            <h3>You install the kit and list it</h3>
+            <p>Panels, battery and inverter go on QIE as a kit NFT, with a fixed price and a weekly amount. Takes two minutes.</p>
           </li>
           <li>
             <h3>The customer verifies once and accepts</h3>
-            <p>An ID check through QIE Pass, or in person by the installer's field agent. Only a hash goes on-chain.</p>
+            <p>An ID check through QIE Pass or in person by your field agent. Only a hash goes on-chain.</p>
           </li>
           <li>
-            <h3>Anyone pays, in QUSDC or QIE</h3>
+            <h3>They pay any way they can</h3>
             <p>
-              The customer, or family in another country, pays from the kit's page. QIE is swapped on QIEDEX and
-              checked against the QIE Oracle.
+              Cash or mobile money to you or an agent, who tops up in one tap. Or QUSDC or QIE straight from the kit's page, from
+              family anywhere.
             </p>
           </li>
           <li>
-            <h3>The last payment hands over the kit</h3>
-            <p>The NFT moves to the customer's wallet and the controller stays on for good.</p>
+            <h3>The kit switches on, online or off</h3>
+            <p>
+              Connected kits read the chain. Off-grid kits take a 12-digit code that only covers time already paid. The last payment
+              hands the kit to the customer.
+            </p>
           </li>
         </ol>
       </section>

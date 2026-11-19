@@ -399,3 +399,41 @@ body[data-power="owned"] .sky-sun { background: radial-gradient(circle, #ffd23f 
 .world-text { margin: 0; font-size: var(--step-1); max-width: 52ch; }
 .world .small { grid-column: 2; margin: 0; }
 @media (max-width: 860px) { .world { grid-template-columns: 1fr; } .world .small { grid-column: 1; } }
+
+/* ---------- installer-first hero, agent, unlock codes ---------- */
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.btn-ghost { background: #ffffffcc; color: var(--cell); box-shadow: inset 0 0 0 1.5px var(--cell); }
+.btn-ghost:hover:not(:disabled) { background: #fff; color: var(--cell); }
+.hero .lookup { margin-top: 24px; }
+.hero .lookup label { font-weight: 500; color: var(--muted); }
+.locked-cta {
+  display: block; margin-top: 14px; padding: 12px 16px; border-radius: 12px; text-decoration: none;
+  background: #16235c; color: #fff; font-weight: 500; box-shadow: 0 10px 30px -16px #16235caa;
+  transition: transform 350ms var(--spring);
+}
+.locked-cta::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff8a73; margin-right: 10px; vertical-align: middle; animation: blink 1.6s steps(1, end) infinite; }
+.locked-cta:hover { transform: translateY(-2px); color: #fff; }
+
+.agent { display: grid; gap: 28px; padding-top: 24px; }
+.agent-intro h1 { font-size: var(--step-3); margin-bottom: 8px; }
+.agent-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+.cash-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; margin: 8px 0 4px; }
+.cash-row .field { max-width: none; margin: 0; }
+.facts.compact { margin: 16px 0 8px; }
+.facts.compact div { padding: 7px 0; }
+
+.unlock-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.unlock h3 { margin: 0 0 6px; font-size: var(--step-1); }
+.unlock-code {
+  font-family: "DSEG7", ui-monospace, monospace; font-size: clamp(1.4rem, 1rem + 2vw, 2.1rem); letter-spacing: 0.04em;
+  background: var(--lcd-on); color: var(--lcd-ink); border-radius: 10px; padding: 16px 18px; margin: 12px 0 8px;
+  box-shadow: inset 0 3px 10px #0003; text-align: center; animation: pop 520ms var(--spring) both; word-break: break-all;
+}
+.unlock-code.key { font-family: ui-monospace, monospace; font-size: 0.85rem; letter-spacing: 0; text-align: left; background: #f3f6fb; color: var(--ink); }
+.unlock-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+code { font-size: 0.9em; background: #eef1f8; padding: 1px 5px; border-radius: 4px; }
+@media (max-width: 860px) { .agent-grid, .cash-row { grid-template-columns: 1fr; } }
+
+.hero-title { font-size: clamp(2.2rem, 1.5rem + 2.6vw, 3.4rem); }
+.agent .lookup { margin-top: 0; }

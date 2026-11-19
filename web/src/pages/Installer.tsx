@@ -29,6 +29,7 @@ export function Installer() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<{ msg: string; hash?: string } | null>(null);
+  const [keyFor, setKeyFor] = useState<{ kit: bigint; key: string } | null>(null);
 
   const load = useCallback(async () => {
     if (!account || !deployed) return;
@@ -134,6 +135,19 @@ export function Installer() {
                             Cancel
                           </button>
                         )}
+                        {(r.status === "Active" || r.status === "Pending") && (
+                          <button className="link" disabled={busy}
+                            onClick={() => act(async () => {
+                              const signature = await client!.signMessage({ account: account!, message: `Imole device key for kit ${r.kitId}` });
+                              const res = await fetch("/api/device-key", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kit: r.kitId.toString(), signature }) });
+                              const j = await res.json();
+                              if (!res.ok) throw new Error(j.error || "Couldn't get the controller key.");
+                              setKeyFor({ kit: r.kitId, key: j.deviceKey });
+                              return "";
+                            }, `Controller key for kit ${r.kitId} is below. Flash it into the kit's controller as DEVICE_KEY_HEX.`)}>
+                            Controller key
+                          </button>
+                        )}
                         {overdue && (
                           <button className="link link-danger" disabled={busy}
                             onClick={() => act(() => send(client!, { ...payg_(), functionName: "repossess", args: [r.id] }), `Kit ${r.kitId} is back in your wallet.`)}>
@@ -149,6 +163,18 @@ export function Installer() {
           </div>
         )}
       </section>
+
+      {keyFor && (
+        <section className="panel">
+          <h2>Controller key for kit {keyFor.kit.toString()}</h2>
+          <p className="muted">
+            Set this as <code>DEVICE_KEY_HEX</code> and <code>KIT_ID = {keyFor.kit.toString()}</code> in the controller firmware before you
+            install it. Keep it private: it lets the controller check unlock codes for this kit.
+          </p>
+          <p className="unlock-code key">{keyFor.key}</p>
+          <button className="btn btn-small" onClick={() => navigator.clipboard?.writeText(keyFor.key)}>Copy key</button>
+        </section>
+      )}
 
       {attester && <VerifyCustomer busy={busy} act={act} />}
 

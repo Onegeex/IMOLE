@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { formatEther, parseEther, type Address } from "viem";
 import { Meter } from "../components/Meter";
+import { UnlockCode } from "../components/UnlockCode";
 import { Connect, short } from "../components/Shell";
 import { ADDR, deployed, erc20Abi, explorerAddr, explorerTx, publicClient, routerAbi } from "../config";
 import {
@@ -75,6 +76,11 @@ export function KitPage() {
           percentPaid={status.percentPaid}
         />
         <PayPanel data={data} reload={load} />
+        {(plan.status === "Active" || plan.status === "PaidOff") && (
+          <div className="panel">
+            <UnlockCode kitId={kitId} refreshKey={Number(plan.totalPaid % 1000000n)} />
+          </div>
+        )}
       </div>
 
       <aside className="kit-side">
@@ -222,7 +228,10 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
         <h2>Buy more power</h2>
         <button className="link" onClick={shareLink}>{copied ? "Link copied" : "Copy link to share"}</button>
       </div>
-      <p className="muted">Anyone can pay toward this kit. Send the link to family who want to help.</p>
+      <p className="muted">
+        No wallet? Pay your installer or a local <Link to="/agent">agent</Link> in cash or mobile money. They top up here and give you the
+        code for your kit. Family anywhere can also pay from this page: send them the link.
+      </p>
 
       <div className="tabs" role="tablist" data-active={method === "qusdc" ? 0 : 1}>
         <button role="tab" aria-selected={method === "qusdc"} onClick={() => setMethod("qusdc")}>Pay in QUSDC</button>
