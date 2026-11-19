@@ -36,10 +36,10 @@
 const char* WIFI_SSID = "Wokwi-GUEST";  // Wokwi's simulated network; use your own on real hardware
 const char* WIFI_PASS = "";
 const char* PAYG_ADDRESS = "0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD";  // ImolePAYG on QIE Mainnet
-const uint32_t KIT_ID = 1;
+const uint32_t KIT_ID = 2;
 // This kit's device key. Installers get it from the Imole app (Installers -> Controller key),
-// signed with the wallet that listed the kit. Kit 1 is the public demo kit, so its key is public.
-const char* DEVICE_KEY_HEX = "dfe0199460e6cabe7ab9aae3c54a33e891dd57f3a1a655e6f8e5c16f679a5444";
+// signed with the wallet that listed the kit. Kit 2 is the public demo kit, so its key is public.
+const char* DEVICE_KEY_HEX = "4af0e45050fdaec33f3e2b4bd0930060fa2359d8431e45b3bb71cb53aebb7162";
 const uint32_t POLL_MS = 30000;
 // ------------------------------------------------------------------------------
 

@@ -52,6 +52,8 @@ These transactions were sent on purpose to show the contract refusing an install
 
 The same run also recorded the happy path: the customer [accepted the plan](https://mainnet.qie.digital/tx/0x2d2e6a0dc0805072f2c5df2d78532a68bdf7252e6437770bc5db7d3fa34db38d), then [paid 1 QIE](https://mainnet.qie.digital/tx/0x4640c6dcd8c8f9369cb4ce8eae05bcadbc5cfbeb3839f119fb3df3588bc7301e). QIEDEX swapped it to 0.1635 QUSDC, 99% went straight to the installer and 1% to the treasury, and the kit gained 32 minutes of power.
 
+Those happened on kit 1, the first test kit. The live demo meter and the Wokwi controller now use **kit 2**, set up the same way on mainnet: the installer [registered](https://mainnet.qie.digital/tx/0xb83fa3c64866b511ad56792e184429dceabd7a27a0791bef62096cf7334d5006), the customer was [ID-verified](https://mainnet.qie.digital/tx/0x63be54dc61d7f8073e80ac0c2038a131dae0a96b4c9e0180e08ca6b7495b2d78), the kit was [listed](https://mainnet.qie.digital/tx/0xf9f2f8ed6934252f5f9263bcf34aaa936f9d97fa4a502964c99fa7140751a493), the customer [accepted](https://mainnet.qie.digital/tx/0xc322495214d7bdd3ef16e8964d2ed429e51f86dff73994f02015502c65180859) and [paid 1 QIE](https://mainnet.qie.digital/tx/0x6dcd801e8e3fe6c91608a5de8ef008c91b2927b927e80107089779865b1b9d6c).
+
 Run `contracts/script/demo.sh` (or `launch.command`) to produce these on your own deployment.
 
 ## How it uses QIE
@@ -190,7 +192,7 @@ Deploy to Vercel as a static Vite site, with the same environment variables. The
 2. Replace `sketch.ino` with [`firmware/imole-controller/imole-controller.ino`](firmware/imole-controller/imole-controller.ino), `diagram.json` with ours, and add the `LiquidCrystal I2C` and `Keypad` libraries (listed in `libraries.txt`).
 3. Set `PAYG_ADDRESS`, `KIT_ID` and `DEVICE_KEY_HEX` at the top of the sketch, then press play.
 
-The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. To see offline mode, slide the **Internet** switch off, get kit 1's code from the app, and type it on the keypad followed by `#`. On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD, a 4×4 keypad and two LEDs, and you set your own Wi-Fi.
+The LCD shows the time left like a prepaid meter, the yellow "load" LED is the inverter output behind the relay, and the serial monitor logs every chain read. To see offline mode, slide the **Internet** switch off, get kit 2's code from the app, and type it on the keypad followed by `#`. On real hardware you need an ESP32 DevKit, a 5 V relay module, a 16×2 I2C LCD, a 4×4 keypad and two LEDs, and you set your own Wi-Fi.
 
 ## Business model
 
