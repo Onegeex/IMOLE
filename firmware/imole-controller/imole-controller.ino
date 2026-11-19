@@ -337,7 +337,9 @@ void setup() {
   uint32_t t0 = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - t0 < 20000) delay(250);
   Serial.printf("[wifi] %s\n", WiFi.status() == WL_CONNECTED ? "connected" : "offline");
-  xTaskCreatePinnedToCore(chainTask, "chain", 16384, nullptr, 1, nullptr, 0);
+  // Core 1 with loop(), same priority: they time-slice, so the keypad stays live during a slow
+  // TLS handshake, and core 0 (Wi-Fi stack + its watchdog) is left alone.
+  xTaskCreatePinnedToCore(chainTask, "chain", 16384, nullptr, 1, nullptr, 1);
   draw();
 }
 
