@@ -110,6 +110,8 @@ Off-grid homes often have no internet, so the controller can't always read the c
 
 How a code works: it packs "powered until time T" (10-minute steps) with a 16-bit HMAC made with the kit's own device key. The controller only accepts a code that is newer than the one it holds, so old codes can't be replayed, and five wrong codes lock the keypad for ten minutes. Installers get each kit's device key from the Installers screen by signing a message with the wallet that listed the kit. The scheme is in [`web/api/_lib.ts`](web/api/_lib.ts) and mirrored in the firmware, with shared test vectors (`npx tsx web/scripts/test-codes.mts`, and the firmware's boot self-test).
 
+Tested end to end on mainnet (19 Nov 2026): kit 2 was paid on-chain, the live service issued its code, and the Wokwi controller, booted with the Internet switch off, accepted it and powered the load for exactly the paid-up time. A wrong or older code is refused. With no internet and no stored time, the controller's clock starts no earlier than the firmware's build time; real kits add a battery-backed clock.
+
 Trust: the code service holds the key that derives device keys, so it's a trusted component, like the KYC attester. It can't move money, and it only issues codes for time the chain says is paid. The demo kit's device key is public in the Wokwi sketch so judges can try it; real kits get private keys.
 
 ## What Imole doesn't solve
