@@ -2,7 +2,9 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Meter } from "../components/Meter";
 import { DEMO_KIT, deployed } from "../config";
-import { fmtUsd, qusdcDecimals, readKitStatus, readStats } from "../chain";
+import { qusdcDecimals, readKitStatus, readStats } from "../chain";
+import { useCountUp, usePowerMood } from "../motion";
+import { formatUnits } from "viem";
 
 type Stats = Awaited<ReturnType<typeof readStats>> & { d: number };
 
@@ -28,6 +30,8 @@ export function Home() {
     return () => clearInterval(t);
   }, []);
 
+  usePowerMood(demo ? (demo.percentPaid >= 100 ? "owned" : demo.active ? "on" : "off") : null);
+
   const go = (e: FormEvent) => {
     e.preventDefault();
     if (/^\d+$/.test(kitInput.trim())) nav(`/kit/${kitInput.trim()}`);
@@ -37,7 +41,10 @@ export function Home() {
     <>
       <section className="hero">
         <div className="hero-copy">
-          <h1>Pay for light a week at a time. Own the solar kit at the end.</h1>
+          <h1 className="hero-title">
+            <span className="line">Pay for light a week at a time.</span>
+            <span className="line">Own the solar kit at the end.</span>
+          </h1>
           <p className="lede">
             Imole lets solar installers sell kits on credit. Each payment on QIE buys days of power. The kit's
             controller switches off when the time runs out, and unlocks for good once the kit is paid off.
@@ -123,27 +130,32 @@ export function Home() {
           <dl>
             <div>
               <dt>Paid toward kits</dt>
-              <dd>{fmtUsd(stats.volume, stats.d)} QUSDC</dd>
+              <dd><Count value={Number(formatUnits(stats.volume, stats.d))} decimals={2} /> QUSDC</dd>
             </div>
             <div>
               <dt>Payments</dt>
-              <dd>{stats.payments.toString()}</dd>
+              <dd><Count value={Number(stats.payments)} /></dd>
             </div>
             <div>
               <dt>People paying</dt>
-              <dd>{stats.payers.toString()}</dd>
+              <dd><Count value={Number(stats.payers)} /></dd>
             </div>
             <div>
               <dt>Kits listed</dt>
-              <dd>{stats.kits.toString()}</dd>
+              <dd><Count value={Number(stats.kits)} /></dd>
             </div>
             <div>
               <dt>Kits paid off</dt>
-              <dd>{stats.paidOff.toString()}</dd>
+              <dd><Count value={Number(stats.paidOff)} /></dd>
             </div>
           </dl>
         </section>
       )}
     </>
   );
+}
+
+function Count({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const v = useCountUp(value);
+  return <span className="num">{v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}</span>;
 }

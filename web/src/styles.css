@@ -245,3 +245,130 @@ th { font-size: var(--step--1); color: var(--muted); font-weight: 500; backgroun
   .mine a { grid-template-columns: auto 1fr; }
   .mine a .muted { grid-column: 2; }
 }
+
+/* =====================================================================
+   Motion layer
+   Spring easing from kinetics.colorion.co-style linear() springs,
+   background in the spirit of bg.ibelick.com, details per interfaces.rauno.me.
+   ===================================================================== */
+:root {
+  --spring: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1);
+  --spring-soft: linear(0, 0.06 3%, 0.23 7%, 0.5 13%, 0.78 21%, 0.95 30%, 1.02 40%, 1.03 50%, 1.01 65%, 1);
+  --out: cubic-bezier(0.22, 1, 0.36, 1);
+  --step-4: clamp(2.3rem, 1.6rem + 3.2vw, 4rem);
+  --step-2: clamp(1.4rem, 1.2rem + 0.8vw, 1.8rem);
+}
+.num, .stats dd, .facts dd, .lcd-digits { font-variant-numeric: tabular-nums; }
+
+/* ---------- the sky: sun glow + solar-cell grid + light sweep ---------- */
+body { background: transparent; }
+.sky { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--day); transition: background 1.2s var(--out); }
+.sky-sun {
+  position: absolute; width: 70vmax; height: 70vmax; right: -18vmax; top: -30vmax; border-radius: 50%;
+  background: radial-gradient(circle, #ffd65a 0%, #ffc21a55 28%, #ffc21a1a 48%, transparent 66%);
+  filter: blur(8px); opacity: 0.85;
+  animation: sun-drift 38s ease-in-out infinite alternate;
+  transition: opacity 1.4s var(--out), filter 1.4s var(--out);
+}
+.sky-grid {
+  position: absolute; inset: -2px;
+  background-image:
+    linear-gradient(90deg, #16235c12 1px, transparent 1px),
+    linear-gradient(0deg, #16235c12 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 75% 10%, #000 20%, transparent 75%);
+          mask-image: radial-gradient(ellipse 80% 70% at 75% 10%, #000 20%, transparent 75%);
+  animation: grid-pan 60s linear infinite;
+}
+.sky-sweep {
+  position: absolute; inset: -50%;
+  background: linear-gradient(115deg, transparent 42%, #ffffffb3 50%, transparent 58%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 75% 15%, #000 15%, transparent 70%);
+          mask-image: radial-gradient(ellipse 70% 60% at 75% 15%, #000 15%, transparent 70%);
+  animation: sweep 9s var(--out) infinite;
+  mix-blend-mode: soft-light;
+}
+body[data-power="off"] .sky { background: #e9ecf2; }
+body[data-power="off"] .sky-sun { opacity: 0.12; filter: blur(14px) grayscale(1); }
+body[data-power="off"] .sky-sweep { animation-play-state: paused; opacity: 0; }
+body[data-power="owned"] .sky-sun { opacity: 1; background: radial-gradient(circle, #ffcf3a 0%, #f5b30166 30%, #f5b30122 50%, transparent 68%); }
+
+@keyframes sun-drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(-6vmax, 4vmax) scale(1.08); } }
+@keyframes grid-pan { to { background-position: 56px 56px, 56px 56px; } }
+@keyframes sweep { 0%, 35% { transform: translateX(-60%); } 75%, 100% { transform: translateX(60%); } }
+
+/* ---------- hero entrance (the one orchestrated moment) ---------- */
+.hero-title .line { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-title .line { animation: rise 900ms var(--spring-soft) both; }
+  .hero-title .line:nth-child(2) { animation-delay: 120ms; }
+  .hero-copy .lede { animation: rise 900ms var(--spring-soft) 220ms both; }
+  .hero-copy .lookup { animation: rise 900ms var(--spring-soft) 300ms both; }
+  .hero-meter .meter { animation: meter-in 1100ms var(--spring) 200ms both; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes meter-in { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* ---------- meter: glow, charge burst, springy paid bar ---------- */
+.meter { position: relative; transition: box-shadow 1s var(--out); }
+.meter.is-on { box-shadow: inset 0 0 0 1px #ffffff1f, 0 24px 60px -24px #16235c99, 0 0 0 1px #ffc21a22, 0 18px 70px -30px #ffc21a88; }
+.paid-fill { transition: width 1100ms var(--spring); }
+.lamp { transition: background 400ms, box-shadow 600ms var(--out); }
+.lamp-on { animation: lamp-breathe 3.2s ease-in-out infinite; }
+@keyframes lamp-breathe { 50% { box-shadow: 0 0 22px 6px #ffc21acc; } }
+.charge-burst {
+  position: absolute; right: 18px; top: 18px; width: 14px; height: 14px; border-radius: 50%;
+  pointer-events: none; box-shadow: 0 0 0 0 #ffc21acc;
+  animation: burst 1400ms var(--out) forwards;
+}
+@keyframes burst {
+  0% { box-shadow: 0 0 0 0 #ffc21acc; }
+  100% { box-shadow: 0 0 0 220px #ffc21a00; }
+}
+
+/* ---------- buttons: spring press, primary shine ---------- */
+.btn { position: relative; overflow: hidden; transition: transform 380ms var(--spring), background 200ms, box-shadow 300ms var(--out); }
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 24px -12px #16235caa; }
+.btn:active:not(:disabled) { transform: scale(0.97); transition-duration: 90ms; }
+.btn-primary { background: linear-gradient(180deg, #1d2d73, var(--cell)); }
+.btn-primary::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-120%);
+  background: linear-gradient(100deg, transparent 30%, #ffffff40 50%, transparent 70%);
+}
+.btn-primary:hover:not(:disabled)::after { transform: translateX(120%); transition: transform 900ms var(--out); }
+.link, .chip, .tabs button, .top nav a { transition: color 160ms, background 200ms, border-color 200ms, transform 300ms var(--spring); }
+.chip:active { transform: scale(0.95); }
+.chip[aria-checked="true"] { transform: scale(1.03); }
+
+/* ---------- tabs: sliding indicator ---------- */
+.tabs { position: relative; isolation: isolate; }
+.tabs::before {
+  content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 6px);
+  border-radius: 8px; background: #fff; box-shadow: 0 1px 2px #16235c22;
+  transition: transform 450ms var(--spring);
+}
+.tabs[data-active="1"]::before { transform: translateX(calc(100% + 4px)); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; }
+.tabs button[aria-selected="true"] { background: transparent; box-shadow: none; }
+
+/* ---------- notes and panels ---------- */
+.note { animation: pop 520ms var(--spring) both; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.panel, fieldset, table, .mine a { background: #ffffffd9; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.mine a { transition: border-color 200ms, transform 350ms var(--spring); }
+.mine a:hover { transform: translateY(-2px); }
+
+/* ---------- steps: connector draws in on scroll where supported ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .steps li::after { transform-origin: left; animation: draw linear both; animation-timeline: view(); animation-range: entry 10% cover 40%; }
+    .steps li::before { animation: badge linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  }
+}
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes badge { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-sun, .sky-grid, .sky-sweep, .lamp-on, .charge-burst, .note { animation: none !important; }
+  .paid-fill, .btn, .tabs::before { transition: none !important; }
+}

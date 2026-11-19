@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRiseFlash } from "../motion";
 
 type Props = {
   kitId: bigint;
@@ -27,6 +28,7 @@ export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption 
   }, [owned, left > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const on = owned || (active && left > 0);
+  const flash = useRiseFlash(percentPaid);
   const d = Math.floor(left / 86400);
   const h = Math.floor((left % 86400) / 3600);
   const m = Math.floor((left % 3600) / 60);
@@ -34,6 +36,7 @@ export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption 
 
   return (
     <figure className={`meter ${on ? "is-on" : "is-off"}`} aria-label={`Kit ${kitId} is ${on ? "powered" : "locked"}`}>
+      {flash > 0 && <span key={flash} className="charge-burst" aria-hidden="true" />}
       <div className="meter-top">
         <span className="meter-brand">Imole</span>
         <span className="meter-kit">Kit {kitId.toString()}</span>

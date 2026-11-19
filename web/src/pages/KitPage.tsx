@@ -9,6 +9,7 @@ import {
   readPlan, readTokenImage, send, type Kit, type Plan,
 } from "../chain";
 import { useWallet } from "../wallet";
+import { usePowerMood } from "../motion";
 
 type Loaded = {
   kit: Kit;
@@ -46,6 +47,8 @@ export function KitPage() {
       setLoadErr("Couldn't reach QIE Mainnet to read this kit. Check your connection and reload.");
     }
   }, [kitId]);
+
+  usePowerMood(data ? (data.plan.status === "PaidOff" ? "owned" : data.status.active ? "on" : "off") : null);
 
   useEffect(() => {
     if (!deployed) return;
@@ -221,7 +224,7 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
       </div>
       <p className="muted">Anyone can pay toward this kit. Send the link to family who want to help.</p>
 
-      <div className="tabs" role="tablist">
+      <div className="tabs" role="tablist" data-active={method === "qusdc" ? 0 : 1}>
         <button role="tab" aria-selected={method === "qusdc"} onClick={() => setMethod("qusdc")}>Pay in QUSDC</button>
         <button role="tab" aria-selected={method === "qie"} onClick={() => setMethod("qie")}>Pay in QIE</button>
       </div>
@@ -244,7 +247,7 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
           </p>
           {account ? (
             <button
-              className="btn"
+              className="btn btn-primary"
               disabled={!!busy}
               onClick={() =>
                 run("Paying…", async () => {
@@ -273,7 +276,7 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
           <p className="muted small">The swap must land within 8% of the QIE Oracle price or it's refused.</p>
           {account ? (
             <button
-              className="btn"
+              className="btn btn-primary"
               disabled={!!busy || !quote}
               onClick={() =>
                 run("Paying…", async () => {

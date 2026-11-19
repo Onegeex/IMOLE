@@ -9,6 +9,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const { account, connect, connecting, error, walletName } = useWallet();
   return (
     <>
+      <div className="sky" aria-hidden="true">
+        <span className="sky-sun" />
+        <span className="sky-grid" />
+        <span className="sky-sweep" />
+      </div>
       <header className="top">
         <Link to="/" className="logo">
           <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
