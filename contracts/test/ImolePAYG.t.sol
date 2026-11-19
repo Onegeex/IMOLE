@@ -291,9 +291,19 @@ contract ImolePAYGTest is Test {
         payg.payWithQIE{value: 100 ether}(planId, 0, block.timestamp + 300);
     }
 
+    function test_payWithQIE_toleratesLiveFeedConditions() public {
+        // as observed on QIE mainnet on 19 Nov 2026: feed paused ~30 h, pool ~4% under the feed
+        (, uint256 planId) = _listAndAccept();
+        feed.set(15_000_000, block.timestamp - 30 hours);
+        router.setRate(144_000);
+        vm.prank(customer);
+        payg.payWithQIE{value: 100 ether}(planId, 0, block.timestamp + 300);
+        assertEq(payg.getPlan(planId).totalPaid, DEPOSIT + 14_400_000);
+    }
+
     function test_payWithQIE_rejectsStaleOracle() public {
         (, uint256 planId) = _listAndAccept();
-        feed.set(15_000_000, block.timestamp - 2 days);
+        feed.set(15_000_000, block.timestamp - 4 days);
         vm.prank(customer);
         vm.expectRevert(ImolePAYG.StaleOracle.selector);
         payg.payWithQIE{value: 100 ether}(planId, 0, block.timestamp + 300);

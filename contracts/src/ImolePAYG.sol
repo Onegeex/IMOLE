@@ -94,8 +94,8 @@ contract ImolePAYG is ERC721, Ownable, ReentrancyGuard {
     address public treasury;
     uint16 public feeBps = 100; // 1% protocol fee on every payment
     uint16 public constant MAX_FEE_BPS = 500;
-    uint32 public maxOracleAge = 1 days;
-    uint16 public maxSwapDeviationBps = 300; // swap must return within 3% of the oracle price
+    uint32 public maxOracleAge = 3 days; // the QIE/USD feed can pause for a day or more
+    uint16 public maxSwapDeviationBps = 800; // swap must return within 8% of the oracle price (the feed swings 4-7% between rounds)
 
     uint256 public nextKitId = 1;
     uint256 public nextPlanId = 1;

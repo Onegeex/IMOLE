@@ -55,7 +55,7 @@ Run `contracts/script/demo.sh` to produce these on your own deployment.
 | **QIE Mainnet** (chain 1990) | Both contracts are deployed and source-verified here. The kit controller reads the chain directly over public RPC, with no Imole server in between. |
 | **QUSDC** `0x3F43…5DA5` | The unit of every price and payment. Payments go straight from the payer to the installer (99%) and the Imole treasury (1%), never held by the contract. |
 | **QIEDEX** router `0x08cd…53Ef` | `payWithQIE` swaps native QIE to QUSDC in the same transaction, so customers who only hold QIE can still pay. |
-| **QIE Oracle** QIE/USD `0x3Bc6…3D17` | Every QIE payment is checked against the oracle price. If the swap returns more than 3% less than the oracle value, or the feed is more than a day old, the payment is refused. This matters because the QIEDEX router's source isn't verified on the explorer. |
+| **QIE Oracle** QIE/USD `0x3Bc6…3D17` | Every QIE payment is checked against the oracle price. If the swap returns more than 8% less than the oracle value, or the feed is more than 3 days old, the payment is refused. Both limits can be tuned by the owner (`setOracleGuard`). They're loose because the live QIE/USD feed swings 4–7% between rounds and has paused for over a day. This matters because the QIEDEX router's source isn't verified on the explorer. |
 | **QIE Wallet** | Detected through EIP-6963 by `rdns: me.qiewallet`, with `window.qie` as the fallback, following QIE's integration guide. It is never identified by `isMetaMask`. |
 | **QIE Pass** | Installers can require an ID check before a customer gets a kit on credit. `ImoleKYC` stores who verified the customer and a hash reference, never personal data. See "Status" below. |
 
@@ -99,7 +99,7 @@ contracts/   Foundry project
   src/ImolePAYG.sol       kit NFT, plans, payments, QIEDEX + oracle path, on-chain art
   src/ImoleKYC.sol        ID-check attestations (QIE Pass or in person)
   src/KitArt.sol          on-chain SVG: lit sun when powered, grey when locked, gold ring when owned
-  test/                   26 tests including a fuzz test; mocks for QUSDC, oracle, router
+  test/                   27 tests including a fuzz test; mocks for QUSDC, oracle, router
   script/Deploy.s.sol     mainnet deploy
   script/preflight.sh     read-only checks of QUSDC, oracle and QIEDEX before deploying
   script/demo.sh          seeds the demo kit and sends the trust-proof transactions
@@ -115,7 +115,7 @@ firmware/    ESP32 controller sketch + Wokwi diagram
 ./setup.sh            # first time only, if you got this as a zip: pulls forge-std and OpenZeppelin v5.0.2
 # (if you cloned from GitHub instead: git submodule update --init --recursive)
 cd contracts
-forge test            # 26 tests
+forge test            # 27 tests
 ```
 
 QIE Mainnet isn't at the Cancun fork: PUSH0 works, but MCOPY and TSTORE don't. `foundry.toml` pins `evm_version = "shanghai"`, OpenZeppelin is pinned to v5.0.2, and the non-transient `ReentrancyGuard` is used.

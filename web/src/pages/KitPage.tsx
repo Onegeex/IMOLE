@@ -270,7 +270,7 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
             <strong>{quote !== null ? `≈ ${fmtUsd(quote > remaining ? remaining : quote, d)} QUSDC` : "Getting a price…"}</strong>
             <span>{quote !== null ? (quote >= remaining ? "clears the kit. Any extra comes back to you as QUSDC." : `adds about ${buys(quote)} of power`) : "from QIEDEX"}</span>
           </p>
-          <p className="muted small">The swap must land within 3% of the QIE Oracle price or it's refused.</p>
+          <p className="muted small">The swap must land within 8% of the QIE Oracle price or it's refused.</p>
           {account ? (
             <button
               className="btn"

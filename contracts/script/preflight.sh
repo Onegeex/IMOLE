@@ -15,4 +15,4 @@ WQIE=$(cast call "$ROUTER" 'WETH()(address)' --rpc-url "$RPC")
 echo "router WETH:     $WQIE"
 echo "quote 1 QIE ->   $(cast call "$ROUTER" 'getAmountsOut(uint256,address[])(uint256[])' 1000000000000000000 "[$WQIE,$QUSDC]" --rpc-url "$RPC") QUSDC units"
 echo
-echo "If the quote is within a few % of the feed price, payWithQIE will work with the default 3% guard."
+echo "payWithQIE needs the quote within 8% of the feed price and the feed updated in the last 3 days."
