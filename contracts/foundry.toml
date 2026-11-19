@@ -2,7 +2,7 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-solc = "/root/.solc/solc-0.8.24"
+solc_version = "0.8.24"
 # QIE mainnet is not at Cancun: PUSH0 works, MCOPY/TSTORE do not.
 evm_version = "shanghai"
 optimizer = true
