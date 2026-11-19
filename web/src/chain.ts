@@ -192,6 +192,7 @@ export function humanDuration(sec: number | bigint): string {
   const m = Math.floor((s % 3600) / 60);
   if (d > 0) return `${d} day${d === 1 ? "" : "s"}${h ? `, ${h} h` : ""}`;
   if (h > 0) return `${h} h ${m} min`;
+  if (m === 0) return "less than a minute";
   return `${m} min`;
 }
 
