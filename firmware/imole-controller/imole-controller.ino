@@ -227,10 +227,14 @@ uint64_t word(const String& hex, int index) {
 
 // Chain reads run in their own FreeRTOS task, so a slow network never blocks the keypad.
 // The task only fetches; loop() applies the result, so kit state is only ever changed in one place.
-struct ChainRead { volatile bool ready; uint64_t time; bool active; uint64_t left; uint32_t pct; int rpc; };
-ChainRead pending = {false, 0, false, 0, 0, 0};
+// (Plain globals rather than a struct: the Arduino builder's auto-prototypes can't see sketch types.)
+volatile bool pendReady = false;
+uint64_t pendTime = 0, pendLeft = 0;
+bool pendActive = false;
+uint32_t pendPct = 0;
+int pendRpc = 0;
 
-bool fetchChain(ChainRead& r) {
+bool fetchChain() {
   char data[75];
   snprintf(data, sizeof(data), "0x3114e208%064x", KIT_ID);  // kitStatus(uint256)
   String call = String("[{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_call\",\"params\":[{\"to\":\"") + PAYG_ADDRESS +
@@ -241,33 +245,33 @@ bool fetchChain(ChainRead& r) {
     String result = field(resp, "result");
     String ts = field(resp, "timestamp");
     if (result.length() < 2 + 64 * 3 || ts.length() < 3) { Serial.printf("[chain] %s failed\n", RPCS[i]); continue; }
-    r.time = strtoull(ts.c_str() + 2, nullptr, 16);
-    r.active = word(result, 0) != 0;
-    r.left = word(result, 1);
-    r.pct = (uint32_t)word(result, 2);
-    r.rpc = i;
+    pendTime = strtoull(ts.c_str() + 2, nullptr, 16);
+    pendActive = word(result, 0) != 0;
+    pendLeft = word(result, 1);
+    pendPct = (uint32_t)word(result, 2);
+    pendRpc = i;
     return true;
   }
   return false;
 }
 
-void applyChain(const ChainRead& r) {
-  syncEpoch = r.time;
+void applyChain() {
+  syncEpoch = pendTime;
   syncMillis = millis();
-  percentPaid = r.pct;
-  if (r.left == UINT64_MAX) owned = true;
-  else unlockUntil = r.active ? r.time + r.left : r.time;
-  rpcIndex = r.rpc;
+  percentPaid = pendPct;
+  if (pendLeft == UINT64_MAX) owned = true;
+  else unlockUntil = pendActive ? pendTime + pendLeft : pendTime;
+  rpcIndex = pendRpc;
   save();
-  Serial.printf("[chain] %s active=%d left=%llu paid=%u%% time=%llu\n", RPCS[r.rpc], r.active, r.left, r.pct, r.time);
+  Serial.printf("[chain] %s active=%d left=%llu paid=%u%% time=%llu\n", RPCS[pendRpc], pendActive, pendLeft, pendPct, pendTime);
+  pendReady = false;  // let the task fetch again
 }
 
 void chainTask(void*) {
   for (;;) {
-    if (!pending.ready && !owned && online() && (lastPoll == 0 || millis() - lastPoll >= POLL_MS)) {
+    if (!pendReady && !owned && online() && (lastPoll == 0 || millis() - lastPoll >= POLL_MS)) {
       lastPoll = millis();
-      ChainRead r = {false, 0, false, 0, 0, 0};
-      if (fetchChain(r)) { pending = r; pending.ready = true; }  // ready last, after the data
+      if (fetchChain()) pendReady = true;  // set last, after the data
       else Serial.println("[chain] all RPCs failed, using local countdown");
     }
     vTaskDelay(pdMS_TO_TICKS(250));
@@ -360,6 +364,6 @@ void loop() {
   uint32_t ms = millis();
   if (ms - lastDraw >= 1000) { lastDraw = ms; draw(); }
   if (ms - lastSave >= 60000) { lastSave = ms; save(); }
-  if (pending.ready) { ChainRead r = pending; pending.ready = false; applyChain(r); draw(); }
+  if (pendReady) { applyChain(); draw(); }
   delay(10);
 }
