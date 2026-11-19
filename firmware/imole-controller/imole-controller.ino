@@ -264,7 +264,6 @@ void setup() {
 
   hexToBytes(DEVICE_KEY_HEX, deviceKey, 32);
   Serial.printf("[selftest] %s\n", selfTest() ? "ok" : "FAILED");
-  Serial.printf("[clock] start %llu (build %llu)\n", (unsigned long long)syncEpoch, (unsigned long long)buildEpoch());
 
   prefs.begin("imole", false);
   owned = prefs.getBool("owned", false);
@@ -273,6 +272,7 @@ void setup() {
   syncEpoch = prefs.getULong64("clock", EPOCH);  // last known time; corrected at the next chain read
   if (syncEpoch < buildEpoch()) syncEpoch = buildEpoch();
   syncMillis = millis();
+  Serial.printf("[clock] start %llu (never before build time %llu)\n", (unsigned long long)syncEpoch, (unsigned long long)buildEpoch());
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
