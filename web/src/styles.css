@@ -260,42 +260,58 @@ th { font-size: var(--step--1); color: var(--muted); font-weight: 500; backgroun
 }
 .num, .stats dd, .facts dd, .lcd-digits { font-variant-numeric: tabular-nums; }
 
-/* ---------- the sky: sun glow + solar-cell grid + light sweep ---------- */
+/* ---------- the sky: sun + rays + solar-cell grid + light sweep ---------- */
 body { background: transparent; }
-.sky { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--day); transition: background 1.2s var(--out); }
+.sky {
+  position: fixed; inset: 0; z-index: -1; overflow: hidden;
+  background: linear-gradient(180deg, #fff4d6 0%, #f3f6fb 55%);
+  transition: background 1.4s var(--out);
+}
+.sky::before { /* slowly turning sun rays */
+  content: ""; position: absolute; width: 160vmax; height: 160vmax; right: -70vmax; top: -95vmax;
+  background: repeating-conic-gradient(from 0deg, #ffc21a26 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 18%, transparent 52%);
+          mask-image: radial-gradient(circle, #000 0%, #000 18%, transparent 52%);
+  animation: rays 90s linear infinite;
+  transition: opacity 1.4s var(--out);
+}
 .sky-sun {
-  position: absolute; width: 70vmax; height: 70vmax; right: -18vmax; top: -30vmax; border-radius: 50%;
-  background: radial-gradient(circle, #ffd65a 0%, #ffc21a55 28%, #ffc21a1a 48%, transparent 66%);
-  filter: blur(8px); opacity: 0.85;
-  animation: sun-drift 38s ease-in-out infinite alternate;
-  transition: opacity 1.4s var(--out), filter 1.4s var(--out);
+  position: absolute; width: 64vmax; height: 64vmax; right: -16vmax; top: -26vmax; border-radius: 50%;
+  background: radial-gradient(circle, #ffdf6e 0%, #ffc21aa6 22%, #ffc21a40 42%, transparent 66%);
+  animation: sun-drift 30s ease-in-out infinite alternate, sun-pulse 7s ease-in-out infinite;
+  transition: opacity 1.4s var(--out), background 1.4s var(--out);
 }
 .sky-grid {
   position: absolute; inset: -2px;
   background-image:
-    linear-gradient(90deg, #16235c12 1px, transparent 1px),
-    linear-gradient(0deg, #16235c12 1px, transparent 1px);
+    linear-gradient(90deg, #16235c24 1px, transparent 1px),
+    linear-gradient(0deg, #16235c24 1px, transparent 1px);
   background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 75% 10%, #000 20%, transparent 75%);
-          mask-image: radial-gradient(ellipse 80% 70% at 75% 10%, #000 20%, transparent 75%);
-  animation: grid-pan 60s linear infinite;
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 70% 15%, #000 30%, transparent 85%);
+          mask-image: radial-gradient(ellipse 90% 80% at 70% 15%, #000 30%, transparent 85%);
+  animation: grid-pan 50s linear infinite;
 }
 .sky-sweep {
   position: absolute; inset: -50%;
-  background: linear-gradient(115deg, transparent 42%, #ffffffb3 50%, transparent 58%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 75% 15%, #000 15%, transparent 70%);
-          mask-image: radial-gradient(ellipse 70% 60% at 75% 15%, #000 15%, transparent 70%);
-  animation: sweep 9s var(--out) infinite;
-  mix-blend-mode: soft-light;
+  background: linear-gradient(115deg, transparent 44%, #ffffffcc 50%, transparent 56%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 20%, transparent 75%);
+          mask-image: radial-gradient(ellipse 80% 70% at 70% 20%, #000 20%, transparent 75%);
+  animation: sweep 8s var(--out) infinite;
 }
-body[data-power="off"] .sky { background: #e9ecf2; }
-body[data-power="off"] .sky-sun { opacity: 0.12; filter: blur(14px) grayscale(1); }
-body[data-power="off"] .sky-sweep { animation-play-state: paused; opacity: 0; }
-body[data-power="owned"] .sky-sun { opacity: 1; background: radial-gradient(circle, #ffcf3a 0%, #f5b30166 30%, #f5b30122 50%, transparent 68%); }
+/* locked: dusk. The sun sets into a cool blue glow, rays stop. */
+body[data-power="off"] .sky { background: linear-gradient(180deg, #dfe5f7 0%, #eef1f8 60%); }
+body[data-power="off"] .sky::before { opacity: 0; }
+body[data-power="off"] .sky-sun { background: radial-gradient(circle, #8fa2ec 0%, #6b7fd680 25%, #6b7fd630 45%, transparent 66%); }
+body[data-power="off"] .sky-sweep { opacity: 0; }
+/* owned: gold */
+body[data-power="owned"] .sky { background: linear-gradient(180deg, #ffe9a8 0%, #f6f1e2 60%); }
+body[data-power="owned"] .sky-sun { background: radial-gradient(circle, #ffd23f 0%, #f5b301b3 24%, #f5b30144 46%, transparent 68%); }
 
-@keyframes sun-drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(-6vmax, 4vmax) scale(1.08); } }
+@keyframes sun-drift { from { transform: translate(0, 0); } to { transform: translate(-7vmax, 5vmax); } }
+@keyframes sun-pulse { 50% { scale: 1.06; } }
+@keyframes rays { to { transform: rotate(360deg); } }
 @keyframes grid-pan { to { background-position: 56px 56px, 56px 56px; } }
-@keyframes sweep { 0%, 35% { transform: translateX(-60%); } 75%, 100% { transform: translateX(60%); } }
+@keyframes sweep { 0%, 30% { transform: translateX(-60%); } 75%, 100% { transform: translateX(60%); } }
 
 /* ---------- hero entrance (the one orchestrated moment) ---------- */
 .hero-title .line { display: block; }
@@ -369,6 +385,6 @@ body[data-power="owned"] .sky-sun { opacity: 1; background: radial-gradient(circ
 @keyframes badge { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .sky-sun, .sky-grid, .sky-sweep, .lamp-on, .charge-burst, .note { animation: none !important; }
+  .sky::before, .sky-sun, .sky-grid, .sky-sweep, .lamp-on, .charge-burst, .note { animation: none !important; }
   .paid-fill, .btn, .tabs::before { transition: none !important; }
 }
