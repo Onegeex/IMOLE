@@ -18,7 +18,7 @@ send() { cast send --rpc-url "$RPC" "$@"; }
 echo "installer $INST  customer $CUST"
 
 # 1. installer profile
-send "${DEP[@]}" "$PAYG" 'registerInstaller(string)' "Imole Demo Installer (Lagos)" || true
+send "${DEP[@]}" "$PAYG" 'registerInstaller(string)' "Imole Demo Installer" || true
 
 # 2. KYC attestation (source 1 = QiePass, 2 = InPerson). Ref is a hash, never personal data.
 send "${DEP[@]}" "$KYC" 'attest(address,uint8,bytes32)' "$CUST" 2 "$(cast keccak demo-in-person-check-001)"
@@ -28,7 +28,7 @@ send "${DEP[@]}" "$KYC" 'attest(address,uint8,bytes32)' "$CUST" 2 "$(cast keccak
 #    (QUSDC amounts below assume 6 decimals; preflight.sh prints the real value)
 send "${DEP[@]}" "$PAYG" \
   'listKit(address,(uint32,uint32,uint32,string),(uint128,uint128,uint128,uint32,uint32,uint32,bool))' \
-  "$CUST" "(1200,2400,1500,\"Ile-Ife Osun\")" "(1000000,0,50000,600,120,3600,true)"
+  "$CUST" "(1200,2400,1500,\"Demo kit\")" "(1000000,0,50000,600,120,3600,true)"
 PLAN=$(( $(cast call "$PAYG" 'nextPlanId()(uint256)' --rpc-url "$RPC" | awk '{print $1}') - 1 ))
 KIT=$(( $(cast call "$PAYG" 'nextKitId()(uint256)' --rpc-url "$RPC" | awk '{print $1}') - 1 ))
 echo "plan $PLAN  kit $KIT"

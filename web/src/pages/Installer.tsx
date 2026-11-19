@@ -86,7 +86,7 @@ export function Installer() {
         >
           <label className="field">
             <span>Business name</span>
-            <input name="name" required maxLength={60} placeholder="e.g. Ikeja Solar Works" />
+            <input name="name" required maxLength={60} placeholder="e.g. Sunrise Solar Co." />
           </label>
           <button className="btn" disabled={busy}>{busy ? "Registering…" : "Register as an installer"}</button>
         </form>
@@ -188,7 +188,7 @@ function ListKit({ d, busy, act, self }: { d: number; busy: boolean; act: (f: ()
         <fieldset>
           <legend>Customer and kit</legend>
           <label className="field wide"><span>Customer's wallet address</span><input name="customer" required placeholder="0x…" /></label>
-          <label className="field wide"><span>Town or area (no street address)</span><input name="loc" required maxLength={40} placeholder="Ile-Ife, Osun" /></label>
+          <label className="field wide"><span>Town or area (no street address)</span><input name="loc" required maxLength={40} placeholder="e.g. Kisumu, Kenya" /></label>
           <label className="field"><span>Panels (W)</span><input name="w" type="number" min="1" required defaultValue="1200" /></label>
           <label className="field"><span>Battery (Wh)</span><input name="wh" type="number" min="1" required defaultValue="2400" /></label>
           <label className="field"><span>Inverter (VA)</span><input name="va" type="number" min="1" required defaultValue="1500" /></label>

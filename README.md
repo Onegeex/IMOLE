@@ -1,10 +1,10 @@
 # Imole: pay-as-you-go solar on QIE
 
-**Pay for light a week at a time. Own the solar kit at the end.**
+**Pay for light a week at a time. Own the solar kit at the end. Anywhere in the world.**
 
-Imole lets solar installers sell home solar kits on credit. Each kit is an NFT on QIE Mainnet with a fixed price. Every payment, in QUSDC or in QIE swapped on QIEDEX, buys days of power. An ESP32 controller on the kit reads the contract and switches the inverter output off when the paid-up time runs out. When the last payment lands, the NFT moves to the customer and the kit unlocks for good.
+Imole is open pay-as-you-go infrastructure that lets any solar installer, in any country, sell home solar kits on credit. Each kit is an NFT on QIE Mainnet with a fixed price. Every payment, in QUSDC or in QIE swapped on QIEDEX, buys days of power. An ESP32 controller on the kit reads the contract and switches the inverter output off when the paid-up time runs out. When the last payment lands, the NFT moves to the customer and the kit unlocks for good.
 
-*Imole* means "light" in Yoruba.
+*Imole* means "light" in Yoruba. Nothing in the protocol is tied to one country: prices are in QUSDC, payments can come from any wallet in the world, and the controller only needs an internet connection.
 
 Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 
@@ -27,13 +27,15 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 
 ## Why this exists
 
-Large parts of Nigeria and sub-Saharan Africa live with an unreliable grid and run petrol generators for light. Pay-as-you-go solar, popularised by companies like M-KOPA and Sun King, is the proven fix: a household pays a deposit, then small regular amounts, and the kit locks itself when payments stop. It works, but only big companies with their own lock-out hardware, payment rails and credit teams can run it.
+About **720 million people** still had no electricity at all in 2025, according to the [IEA](https://www.iea.org/commentaries/a-record-number-of-people-in-africa-gained-electricity-access-in-2025). Most of them live in sub-Saharan Africa, with large pockets in South Asia, Haiti, and remote and island communities. Hundreds of millions more are on grids that fail for hours every day and fall back on diesel or petrol generators.
 
-Imole turns that model into something any local installer can use:
+Pay-as-you-go solar, popularised by companies like M-KOPA and Sun King, is the proven fix: a household pays a deposit, then small regular amounts, and the kit locks itself when payments stop. It works, but only big companies with their own lock-out hardware, payment rails, local banking and credit teams can run it, and each one rebuilds that stack country by country.
+
+Imole turns that model into shared, global infrastructure that any local installer, anywhere, can plug into:
 
 - **The lock-out logic is a public contract**, not a proprietary server. Installers don't need to build one, and customers don't need to trust one.
-- **Payments settle instantly in QUSDC** to the installer's wallet. No collections team, no 30-day settlement.
-- **Anyone can pay for anyone.** A relative abroad can open the kit's link and buy a month of light for their parents in Ile-Ife.
+- **Payments settle instantly in QUSDC** to the installer's wallet. No collections team, no 30-day settlement, no local bank integration per country.
+- **Anyone can pay for anyone, across borders.** A relative working in another country can open the kit's link and buy a month of light for their family at home: no remittance fees, no FX desk.
 - **Ownership is real.** The kit is an NFT, and the final payment transfers it to the customer automatically.
 
 ## Trust proofs (on mainnet)

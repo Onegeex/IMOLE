@@ -46,7 +46,7 @@ export function Home() {
             <span className="line">Own the solar kit at the end.</span>
           </h1>
           <p className="lede">
-            Imole lets solar installers sell kits on credit. Each payment on QIE buys days of power. The kit's
+            Imole lets solar installers anywhere in the world sell kits on credit. Each payment on QIE buys days of power. The kit's
             controller switches off when the time runs out, and unlocks for good once the kit is paid off.
           </p>
           <form className="lookup" onSubmit={go}>
@@ -103,7 +103,7 @@ export function Home() {
           <li>
             <h3>Anyone pays, in QUSDC or QIE</h3>
             <p>
-              The customer, or a relative in London or Houston, pays from the kit's page. QIE is swapped on QIEDEX and
+              The customer, or family in another country, pays from the kit's page. QIE is swapped on QIEDEX and
               checked against the QIE Oracle.
             </p>
           </li>
@@ -125,6 +125,16 @@ export function Home() {
           <li>The kit can only be taken back once the customer is overdue by the period agreed at signing, 30 days by default.</li>
           <li>Once paid off, nobody can lock the kit again, the installer included.</li>
         </ul>
+      </section>
+
+      <section className="world">
+        <p className="world-num">720 million</p>
+        <p className="world-text">
+          people still had no electricity in 2025, most of them in sub-Saharan Africa, South Asia and island
+          communities. Imole gives any installer, in any country, the same pay-as-you-go tools the big solar companies
+          built for themselves.
+        </p>
+        <p className="muted small">Source: <a href="https://www.iea.org/commentaries/a-record-number-of-people-in-africa-gained-electricity-access-in-2025">IEA, 2026</a></p>
       </section>
 
       {stats && (

@@ -14,7 +14,7 @@ type Props = {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * Styled after a Nigerian prepaid electricity meter: an LCD readout of how much
+ * Styled after a prepaid electricity meter, as used across Africa and Asia: an LCD readout of how much
  * light is left, counting down live, on a solar-cell blue body.
  */
 export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption, loading }: Props) {

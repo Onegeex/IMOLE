@@ -392,3 +392,10 @@ body[data-power="owned"] .sky-sun { background: radial-gradient(circle, #ffd23f 
 .is-loading .lcd { background: var(--lcd-dark); color: #7f89a3; }
 .lcd-loading { animation: blink 1.4s steps(1, end) infinite; }
 @media (prefers-reduced-motion: reduce) { .lcd-loading { animation: none; } }
+
+/* ---------- world band ---------- */
+.world { padding: 56px 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: 8px 40px; align-items: baseline; }
+.world-num { margin: 0; font-size: clamp(3rem, 2rem + 4vw, 5.5rem); font-weight: 800; letter-spacing: -0.03em; color: var(--cell); line-height: 1; }
+.world-text { margin: 0; font-size: var(--step-1); max-width: 52ch; }
+.world .small { grid-column: 2; margin: 0; }
+@media (max-width: 860px) { .world { grid-template-columns: 1fr; } .world .small { grid-column: 1; } }

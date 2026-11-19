@@ -37,7 +37,7 @@ contract ImolePAYGTest is Test {
         kyc.setAttester(attester, true);
 
         vm.prank(installer);
-        payg.registerInstaller("Ikeja Solar Works");
+        payg.registerInstaller("Sunrise Solar Co.");
 
         qusdc.mint(customer, 1_000e6);
         qusdc.mint(relative, 1_000e6);
@@ -61,7 +61,7 @@ contract ImolePAYGTest is Test {
     }
 
     function _specs() internal pure returns (ImolePAYG.Specs memory) {
-        return ImolePAYG.Specs({panelWatts: 1200, batteryWh: 2400, inverterVA: 1500, location: "Ikeja, Lagos"});
+        return ImolePAYG.Specs({panelWatts: 1200, batteryWh: 2400, inverterVA: 1500, location: "Kisumu, Kenya"});
     }
 
     function _list(bool requireKyc) internal returns (uint256 kitId, uint256 planId) {
