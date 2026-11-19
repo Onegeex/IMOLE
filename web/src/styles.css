@@ -437,3 +437,8 @@ code { font-size: 0.9em; background: #eef1f8; padding: 1px 5px; border-radius: 4
 
 .hero-title { font-size: clamp(2.2rem, 1.5rem + 2.6vw, 3.4rem); }
 .agent .lookup { margin-top: 0; }
+
+.refill { margin-top: 16px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 12px; }
+.refill summary { cursor: pointer; font-weight: 700; color: var(--cell); }
+.refill[open] summary { margin-bottom: 8px; }
+.refill-out { display: block; padding: 11px 0; font-size: var(--step-1); color: var(--cell); }

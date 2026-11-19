@@ -15,3 +15,8 @@ remappings = [
 [rpc_endpoints]
 qie_mainnet = "https://rpc1mainnet.qie.digital"
 qie_testnet = "https://rpc1testnet.qie.digital"
+
+[invariant]
+runs = 256
+depth = 60
+fail_on_revert = false

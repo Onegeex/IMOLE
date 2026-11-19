@@ -116,7 +116,7 @@ Being honest about the hard parts of pay-as-you-go solar:
 
 - **Hardware, logistics and field operations.** Sourcing kits, installing them, maintenance, customer support and physically recovering kits after a default all stay with the installer. Imole handles payments, lock-out rules and ownership, not trucks and technicians.
 - **Physical tampering.** A determined owner can bypass any relay by rewiring, as with every pay-as-you-go system. The deterrents are the repossession right and losing the kit NFT, not the electronics.
-- **Agent liquidity.** Agents need a QUSDC float and a way to turn cash back into QUSDC. Today that means an exchange or OTC desk; mobile-money on-ramps are the obvious next integration.
+- **Agent liquidity.** Agents need a QUSDC float. The agent screen can refill it in one tap by swapping QIE on QIEDEX, but turning collected cash into QIE or QUSDC, and back, still goes through an exchange or OTC desk. Mobile-money on- and off-ramps are the next integration and need a licensed partner.
 - **Credit risk.** Imole enforces the terms an installer chooses; it doesn't decide who should get credit. An on-chain payment history is the start of a credit record, not a credit score.
 - **Traction.** At submission this is one demo kit plus early pilots, not a network. The numbers on the home page are live and unedited.
 
@@ -127,7 +127,7 @@ contracts/   Foundry project
   src/ImolePAYG.sol       kit NFT, plans, payments, QIEDEX + oracle path, on-chain art
   src/ImoleKYC.sol        ID-check attestations (QIE Pass or in person)
   src/KitArt.sol          on-chain SVG: lit sun when powered, grey when locked, gold ring when owned
-  test/                   27 tests including a fuzz test; mocks for QUSDC, oracle, router
+  test/                   27 unit + fuzz tests, 4 invariant tests; mocks for QUSDC, oracle, router
   script/Deploy.s.sol     mainnet deploy
   script/preflight.sh     read-only checks of QUSDC, oracle and QIEDEX before deploying
   script/demo.sh          seeds the demo kit and sends the trust-proof transactions
@@ -201,7 +201,7 @@ The LCD shows the time left like a prepaid meter, the yellow "load" LED is the i
 
 ## Status and honest limitations
 
-- **Unaudited.** This is hackathon code. Don't put large amounts through it yet.
+- **Reviewed, not audited.** 27 unit and fuzz tests, 4 invariants under 61,440 random calls, and a Slither pass with every finding triaged: see [SECURITY.md](SECURITY.md). Don't put large amounts through it before a professional audit.
 - **QIE Pass:** QIE Pass verification is a partner REST API with HMAC credentials, not an on-chain contract. `ImoleKYC` is built so a backend holding those credentials can attest customers as `Source.QiePass`. Until Imole receives partner credentials, attestations are done in person by the installer's field agent (`Source.InPerson`), which is also how most rural customers will be onboarded.
 - **Attester trust:** whoever holds an attester key can mark customers as verified. The owner adds and removes attesters.
 - **Controller:** the demo firmware skips TLS certificate pinning. The call is read-only, so the worst a network attacker can do is report "on" for a while. Production plan: pinned CA plus a status signed by a key that only the contract's owner controls. A determined owner can also bypass any relay by rewiring the kit, as with every pay-as-you-go system. The deterrent is the 30-day repossession right and the loss of the kit NFT.

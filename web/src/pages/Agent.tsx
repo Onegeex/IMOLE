@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { parseUnits, type Address } from "viem";
 import { Connect, short } from "../components/Shell";
 import { UnlockCode } from "../components/UnlockCode";
+import { RefillFloat } from "../components/RefillFloat";
 import { ADDR, deployed, erc20Abi, explorerTx, publicClient } from "../config";
 import {
   explain, fmtUsd, humanDuration, payg_, periodName, qusdcDecimals, readKit, readPlan, send, type Plan,
@@ -31,6 +32,7 @@ export function Agent() {
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<{ hash: string; amount: bigint } | null>(null);
+  const [refills, setRefills] = useState(0);
 
   useEffect(() => {
     fetch("https://open.er-api.com/v6/latest/USD")
@@ -46,7 +48,7 @@ export function Agent() {
       .readContract({ address: ADDR.qusdc, abi: erc20Abi, functionName: "balanceOf", args: [account] })
       .then(setFloat)
       .catch(() => setFloat(null));
-  }, [account, done]);
+  }, [account, done, refills]);
 
   const lookup = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -171,6 +173,7 @@ export function Agent() {
                   </button>
                 </>
               )}
+              {account && <RefillFloat d={d} onDone={() => setRefills((n) => n + 1)} />}
               {err && <p className="note note-err" role="alert">{err}</p>}
               {done && (
                 <p className="note note-ok" role="status">

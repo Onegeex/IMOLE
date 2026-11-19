@@ -4,7 +4,7 @@ import { formatEther, parseEther, type Address } from "viem";
 import { Meter } from "../components/Meter";
 import { UnlockCode } from "../components/UnlockCode";
 import { Connect, short } from "../components/Shell";
-import { ADDR, deployed, erc20Abi, explorerAddr, explorerTx, publicClient, routerAbi } from "../config";
+import { ADDR, deployed, erc20Abi, explorerAddr, explorerTx, FEED, feedAbi, MAX_ORACLE_AGE, publicClient, routerAbi } from "../config";
 import {
   explain, fmtUsd, humanDuration, isVerified, payg_, periodCount, periodName, qusdcDecimals, readInstaller, readKit, readKitStatus,
   readPlan, readTokenImage, send, type Kit, type Plan,
@@ -118,6 +118,16 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
   const [qieAmount, setQieAmount] = useState("10");
   const [quote, setQuote] = useState<bigint | null>(null);
   const [copied, setCopied] = useState(false);
+  const [feedAge, setFeedAge] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (method !== "qie") return;
+    publicClient
+      .readContract({ address: FEED, abi: feedAbi, functionName: "latestRoundData" })
+      .then((r) => setFeedAge(Math.floor(Date.now() / 1000) - Number(r[3])))
+      .catch(() => setFeedAge(null));
+  }, [method]);
+  const feedStale = feedAge !== null && feedAge > MAX_ORACLE_AGE;
 
   const remaining = plan.terms.price - plan.totalPaid;
   const amount = useMemo(() => {
@@ -235,7 +245,7 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
 
       <div className="tabs" role="tablist" data-active={method === "qusdc" ? 0 : 1}>
         <button role="tab" aria-selected={method === "qusdc"} onClick={() => setMethod("qusdc")}>Pay in QUSDC</button>
-        <button role="tab" aria-selected={method === "qie"} onClick={() => setMethod("qie")}>Pay in QIE</button>
+        <button role="tab" aria-selected={method === "qie"} onClick={() => setMethod("qie")}>Pay in QIE (optional)</button>
       </div>
 
       {method === "qusdc" ? (
@@ -282,11 +292,21 @@ function PayPanel({ data, reload }: { data: Loaded; reload: () => Promise<void> 
             <strong>{quote !== null ? `≈ ${fmtUsd(quote > remaining ? remaining : quote, d)} QUSDC` : "Getting a price…"}</strong>
             <span>{quote !== null ? (quote >= remaining ? "clears the kit. Any extra comes back to you as QUSDC." : `adds about ${buys(quote)} of power`) : "from QIEDEX"}</span>
           </p>
-          <p className="muted small">The swap must land within 8% of the QIE Oracle price or it's refused.</p>
+          {feedStale ? (
+            <p className="note note-err">
+              The QIE price feed hasn't updated for {humanDuration(feedAge!)}, so QIE payments are paused to protect you. Pay in QUSDC
+              instead: QUSDC payments don't depend on any price feed.
+            </p>
+          ) : (
+            <p className="muted small">
+              Convenience only. QIE is swapped to QUSDC on QIEDEX and must land within 8% of the QIE Oracle price, or it's refused.
+              {feedAge !== null && ` Price feed updated ${humanDuration(feedAge)} ago.`} QUSDC payments never use the price feed.
+            </p>
+          )}
           {account ? (
             <button
               className="btn btn-primary"
-              disabled={!!busy || !quote}
+              disabled={!!busy || !quote || feedStale}
               onClick={() =>
                 run("Paying…", async () => {
                   const wei = parseEther(qieAmount);
