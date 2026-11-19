@@ -4,7 +4,8 @@
   Switches a solar kit's output on or off from what has been PAID on QIE Mainnet.
   Two ways to learn that, so it works with and without internet:
 
-  1. Online: a read-only eth_call to kitStatus(kitId) on a public QIE RPC every POLL_MS.
+  1. Online: a read-only eth_call to kitStatus(kitId) on a public QIE RPC every POLL_MS, in a
+     background task so the keypad never waits on the network.
      The chain's block time also sets the controller's clock.
   2. Offline: the customer types a 12-digit unlock code on the keypad. The code encodes
      "powered until <time>" plus a 16-bit HMAC made with this kit's device key. Codes are only
@@ -75,7 +76,8 @@ uint32_t syncMillis = 0;
 uint32_t percentPaid = 0;
 bool tampered = false;       // case was opened; only an installer reset code clears it
 uint32_t tamperCount = 0;    // how many times; each reset code works for one count only
-uint32_t lastPoll = 0, lastDraw = 0, lastSave = 0, lockoutUntilMs = 0, msgUntilMs = 0;
+volatile uint32_t lastPoll = 0;
+uint32_t lastDraw = 0, lastSave = 0, lockoutUntilMs = 0, msgUntilMs = 0;
 int rpcIndex = 0, strikes = 0;
 String entry = "", message = "";
 
@@ -223,30 +225,53 @@ uint64_t word(const String& hex, int index) {
   return strtoull(hex.substring(start + 48, start + 64).c_str(), nullptr, 16);
 }
 
-bool readChain() {
+// Chain reads run in their own FreeRTOS task, so a slow network never blocks the keypad.
+// The task only fetches; loop() applies the result, so kit state is only ever changed in one place.
+struct ChainRead { volatile bool ready; uint64_t time; bool active; uint64_t left; uint32_t pct; int rpc; };
+ChainRead pending = {false, 0, false, 0, 0, 0};
+
+bool fetchChain(ChainRead& r) {
   char data[75];
   snprintf(data, sizeof(data), "0x3114e208%064x", KIT_ID);  // kitStatus(uint256)
   String call = String("[{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_call\",\"params\":[{\"to\":\"") + PAYG_ADDRESS +
                 "\",\"data\":\"" + data + "\"},\"latest\"]},{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"eth_getBlockByNumber\",\"params\":[\"latest\",false]}]";
   for (int attempt = 0; attempt < RPC_COUNT; attempt++) {
-    const char* url = RPCS[(rpcIndex + attempt) % RPC_COUNT];
-    String resp = rpcPost(url, call);
+    int i = (rpcIndex + attempt) % RPC_COUNT;
+    String resp = rpcPost(RPCS[i], call);
     String result = field(resp, "result");
     String ts = field(resp, "timestamp");
-    if (result.length() < 2 + 64 * 3 || ts.length() < 3) { Serial.printf("[chain] %s failed\n", url); continue; }
-    syncEpoch = strtoull(ts.c_str() + 2, nullptr, 16);
-    syncMillis = millis();
-    bool active = word(result, 0) != 0;
-    uint64_t left = word(result, 1);
-    percentPaid = (uint32_t)word(result, 2);
-    if (left == UINT64_MAX) owned = true;
-    else unlockUntil = active ? syncEpoch + left : syncEpoch;
-    rpcIndex = (rpcIndex + attempt) % RPC_COUNT;
-    save();
-    Serial.printf("[chain] %s active=%d left=%llu paid=%u%% time=%llu\n", url, active, left, percentPaid, syncEpoch);
+    if (result.length() < 2 + 64 * 3 || ts.length() < 3) { Serial.printf("[chain] %s failed\n", RPCS[i]); continue; }
+    r.time = strtoull(ts.c_str() + 2, nullptr, 16);
+    r.active = word(result, 0) != 0;
+    r.left = word(result, 1);
+    r.pct = (uint32_t)word(result, 2);
+    r.rpc = i;
     return true;
   }
   return false;
+}
+
+void applyChain(const ChainRead& r) {
+  syncEpoch = r.time;
+  syncMillis = millis();
+  percentPaid = r.pct;
+  if (r.left == UINT64_MAX) owned = true;
+  else unlockUntil = r.active ? r.time + r.left : r.time;
+  rpcIndex = r.rpc;
+  save();
+  Serial.printf("[chain] %s active=%d left=%llu paid=%u%% time=%llu\n", RPCS[r.rpc], r.active, r.left, r.pct, r.time);
+}
+
+void chainTask(void*) {
+  for (;;) {
+    if (!pending.ready && !owned && online() && (lastPoll == 0 || millis() - lastPoll >= POLL_MS)) {
+      lastPoll = millis();
+      ChainRead r = {false, 0, false, 0, 0, 0};
+      if (fetchChain(r)) { pending = r; pending.ready = true; }  // ready last, after the data
+      else Serial.println("[chain] all RPCs failed, using local countdown");
+    }
+    vTaskDelay(pdMS_TO_TICKS(250));
+  }
 }
 
 // ---------------------------------------------------------------- output
@@ -308,8 +333,7 @@ void setup() {
   uint32_t t0 = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - t0 < 20000) delay(250);
   Serial.printf("[wifi] %s\n", WiFi.status() == WL_CONNECTED ? "connected" : "offline");
-  if (online()) readChain();
-  lastPoll = millis();
+  xTaskCreatePinnedToCore(chainTask, "chain", 16384, nullptr, 1, nullptr, 0);
   draw();
 }
 
@@ -336,10 +360,6 @@ void loop() {
   uint32_t ms = millis();
   if (ms - lastDraw >= 1000) { lastDraw = ms; draw(); }
   if (ms - lastSave >= 60000) { lastSave = ms; save(); }
-  if (!owned && online() && ms - lastPoll >= POLL_MS) {
-    lastPoll = ms;
-    if (!readChain()) Serial.println("[chain] all RPCs failed, using local countdown");
-    draw();
-  }
+  if (pending.ready) { ChainRead r = pending; pending.ready = false; applyChain(r); draw(); }
   delay(10);
 }
