@@ -108,6 +108,24 @@
       "attrs": {
         "text": "Internet on / off"
       }
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "lid",
+      "top": 60,
+      "left": -90,
+      "attrs": {
+        "value": "0"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "lidlabel",
+      "top": 30,
+      "left": -150,
+      "attrs": {
+        "text": "Case lid: closed / open"
+      }
     }
   ],
   "connections": [
@@ -282,6 +300,18 @@
     [
       "net:1",
       "esp:GND.1",
+      "black",
+      []
+    ],
+    [
+      "lid:2",
+      "esp:18",
+      "orange",
+      []
+    ],
+    [
+      "lid:1",
+      "esp:GND.2",
       "black",
       []
     ]

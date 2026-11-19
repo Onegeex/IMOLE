@@ -168,6 +168,12 @@ export function Agent() {
               ) : (
                 <>
                   <p className="muted small">Your float: {float === null ? "…" : `${fmtUsd(float, d)} QUSDC`}</p>
+                  {account.toLowerCase() === plan.installer.toLowerCase() && amount > 0n && (
+                    <p className="note note-ok own-kit">
+                      This is your own customer. {fmtUsd(amount - amount / 100n, d)} QUSDC comes straight back to you in the same
+                      transaction, so this top-up costs your float only {fmtUsd(amount / 100n, d)} QUSDC, the 1% fee.
+                    </p>
+                  )}
                   <button className="btn btn-primary" disabled={!!busy || amount === 0n || (float !== null && float < amount)} onClick={topUp}>
                     {busy ?? (float !== null && float < amount ? "Not enough QUSDC in your float" : `Top up kit ${plan.kitId}`)}
                   </button>
@@ -198,7 +204,7 @@ export function Agent() {
 
       <p className="muted small">
         Exchange rates from open.er-api.com, for display only. You're paying in QUSDC from your own float; agree your cash price with the
-        customer as you would for airtime. <Link to="/installer">Installers</Link> receive 99% of every top-up instantly.
+        customer as you would for airtime. <Link to="/installer">Installers</Link> receive 99% of every top-up instantly, so an installer topping up their own customers only spends the 1% fee.
       </p>
     </div>
   );

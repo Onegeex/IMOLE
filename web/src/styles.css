@@ -442,3 +442,15 @@ code { font-size: 0.9em; background: #eef1f8; padding: 1px 5px; border-radius: 4
 .refill summary { cursor: pointer; font-weight: 700; color: var(--cell); }
 .refill[open] summary { margin-bottom: 8px; }
 .refill-out { display: block; padding: 11px 0; font-size: var(--step-1); color: var(--cell); }
+
+/* Taking cash: a receipt-like ledger */
+.ledger { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; display: grid; gap: 0; }
+.ledger > div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px dashed var(--line); font-size: var(--step-0); }
+.ledger > div span { color: var(--muted); }
+.ledger > div strong { color: var(--cell); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ledger .ledger-total { border-bottom: 0; border-top: 2px solid var(--cell); margin-top: 4px; }
+.ledger .ledger-total strong { color: var(--ok); }
+.ledger p { margin: 10px 0 0; }
+@media (max-width: 520px) { .ledger > div { flex-direction: column; gap: 2px; } }
+.tamper { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+.tamper .lookup-row { max-width: 420px; }

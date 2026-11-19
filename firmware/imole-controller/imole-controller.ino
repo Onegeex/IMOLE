@@ -45,6 +45,7 @@ const uint32_t POLL_MS = 30000;
 
 const uint64_t EPOCH = 1767225600ULL;  // 2026-01-01T00:00:00Z, same as the code service
 const uint32_t FOREVER_T10 = (1UL << 23) - 1;
+const uint32_t RESET_T10 = (1UL << 23) - 2;  // reserved: installer's tamper reset code
 
 const char* RPCS[] = {
   "https://rpc1mainnet.qie.digital",
@@ -54,6 +55,7 @@ const char* RPCS[] = {
 const int RPC_COUNT = sizeof(RPCS) / sizeof(RPCS[0]);
 
 const int PIN_RELAY = 26, PIN_LED_ON = 2, PIN_LED_DUE = 4, PIN_NET = 15;
+const int PIN_LID = 18;  // case lid switch: closed = to GND. Opening the case locks the kit.
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Preferences prefs;
@@ -71,6 +73,8 @@ uint32_t bestT10 = 0;        // newest accepted code
 uint64_t syncEpoch = 0;      // chain time at last sync
 uint32_t syncMillis = 0;
 uint32_t percentPaid = 0;
+bool tampered = false;       // case was opened; only an installer reset code clears it
+uint32_t tamperCount = 0;    // how many times; each reset code works for one count only
 uint32_t lastPoll = 0, lastDraw = 0, lastSave = 0, lockoutUntilMs = 0, msgUntilMs = 0;
 int rpcIndex = 0, strikes = 0;
 String entry = "", message = "";
@@ -116,6 +120,14 @@ void hmac256(const uint8_t* key, size_t keyLen, const char* msg, uint8_t out[32]
   mbedtls_md_free(&ctx);
 }
 
+uint16_t resetMac16(const uint8_t* key, uint32_t kit, uint32_t count) {
+  char msg[48];
+  snprintf(msg, sizeof(msg), "imole-reset:%u:%u", kit, count);
+  uint8_t h[32];
+  hmac256(key, 32, msg, h);
+  return ((uint16_t)h[0] << 8) | h[1];
+}
+
 uint16_t mac16(const uint8_t* key, uint32_t kit, uint32_t t10) {
   char msg[48];
   snprintf(msg, sizeof(msg), "imole:%u:%u", kit, t10);
@@ -131,6 +143,8 @@ void save() {
   prefs.putULong64("until", unlockUntil);
   prefs.putULong("t10", bestT10);
   prefs.putULong64("clock", nowEpoch());
+  prefs.putBool("tamper", tampered);
+  prefs.putULong("tcount", tamperCount);
 }
 
 // Same vectors as web/scripts/test-codes.mts
@@ -139,7 +153,8 @@ bool selfTest() {
   hexToBytes("e6cac227a15b89af5a20920ddea5f0ae995a25781c52dcebd4c8881fc7cf3f73", k, 32);
   uint64_t v1 = (uint64_t)12345 * 65536 + mac16(k, 1, 12345);
   uint64_t v2 = (uint64_t)FOREVER_T10 * 65536 + mac16(k, 1, FOREVER_T10);
-  return v1 == 809065665ULL && v2 == 549755766337ULL;
+  uint64_t v3 = (uint64_t)RESET_T10 * 65536 + resetMac16(k, 1, 1);
+  return v1 == 809065665ULL && v2 == 549755766337ULL && v3 == 549755698060ULL;
 }
 
 // ---------------------------------------------------------------- offline codes
@@ -149,7 +164,8 @@ void tryCode(const String& digits) {
   uint64_t v = strtoull(digits.c_str(), nullptr, 10);
   uint32_t t10 = (uint32_t)(v >> 16);
   uint16_t mac = (uint16_t)(v & 0xFFFF);
-  if (t10 > FOREVER_T10 || mac != mac16(deviceKey, KIT_ID, t10)) {
+  uint16_t expected = t10 == RESET_T10 ? resetMac16(deviceKey, KIT_ID, tamperCount) : mac16(deviceKey, KIT_ID, t10);
+  if (t10 > FOREVER_T10 || mac != expected) {
     strikes++;
     Serial.printf("[code] rejected (%d/5)\n", strikes);
     if (strikes >= 5) { lockoutUntilMs = millis() + 600000; strikes = 0; say("Locked 10 min", 5000); }
@@ -157,6 +173,14 @@ void tryCode(const String& digits) {
     return;
   }
   strikes = 0;
+  if (t10 == RESET_T10) {  // checked against the current tamper count, so each reset code works once
+    if (!tampered) { say("Nothing to reset"); return; }
+    if (digitalRead(PIN_LID) == HIGH) { say("Close the lid"); return; }
+    tampered = false; save();
+    Serial.printf("[tamper] cleared by installer (#%u)\n", tamperCount);
+    say("Installer reset", 5000);
+    return;
+  }
   if (t10 == FOREVER_T10) {
     owned = true; save(); say("Kit is yours!", 5000);
     Serial.println("[code] accepted: paid off");
@@ -230,13 +254,14 @@ void pad(const char* s) { lcd.print(s); for (int i = strlen(s); i < 16; i++) lcd
 
 void draw() {
   uint64_t now = nowEpoch();
-  bool on = owned || unlockUntil > now;
+  bool on = owned || (!tampered && unlockUntil > now);
   digitalWrite(PIN_RELAY, on ? HIGH : LOW);
   digitalWrite(PIN_LED_ON, on ? HIGH : LOW);
   digitalWrite(PIN_LED_DUE, on ? LOW : HIGH);
 
   char top[17], bottom[17];
   if (owned) snprintf(top, sizeof(top), "Kit %u OWNED", KIT_ID);
+  else if (tampered) snprintf(top, sizeof(top), "LOCKED tamper #%u", tamperCount);
   else if (on) {
     uint64_t s = unlockUntil - now;
     uint32_t d = s / 86400, h = (s % 86400) / 3600, m = (s % 3600) / 60;
@@ -245,6 +270,7 @@ void draw() {
 
   if (entry.length()) snprintf(bottom, sizeof(bottom), "#%s", entry.c_str());
   else if (millis() < msgUntilMs) snprintf(bottom, sizeof(bottom), "%s", message.c_str());
+  else if (tampered && !owned) snprintf(bottom, sizeof(bottom), "Call installer");
   else if (!online()) snprintf(bottom, sizeof(bottom), "No net:type code");
   else if (owned) snprintf(bottom, sizeof(bottom), "Power for good");
   else snprintf(bottom, sizeof(bottom), "Paid %3u%% Online", percentPaid);
@@ -257,6 +283,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(PIN_RELAY, OUTPUT); pinMode(PIN_LED_ON, OUTPUT); pinMode(PIN_LED_DUE, OUTPUT);
   pinMode(PIN_NET, INPUT_PULLUP);
+  pinMode(PIN_LID, INPUT_PULLUP);
   digitalWrite(PIN_RELAY, LOW);  // locked until we know better
 
   lcd.init(); lcd.backlight();
@@ -269,6 +296,8 @@ void setup() {
   owned = prefs.getBool("owned", false);
   unlockUntil = prefs.getULong64("until", 0);
   bestT10 = prefs.getULong("t10", 0);
+  tampered = prefs.getBool("tamper", false);
+  tamperCount = prefs.getULong("tcount", 0);
   syncEpoch = prefs.getULong64("clock", EPOCH);  // last known time; corrected at the next chain read
   if (syncEpoch < buildEpoch()) syncEpoch = buildEpoch();
   syncMillis = millis();
@@ -284,7 +313,19 @@ void setup() {
   draw();
 }
 
+// Opening the case locks the kit (a paid-off kit belongs to the customer, so it's ignored there).
+// Paid time isn't lost: codes and chain reads still update it, and power returns after the reset.
+void checkLid() {
+  if (owned || tampered || digitalRead(PIN_LID) == LOW) return;
+  delay(30);
+  if (digitalRead(PIN_LID) == LOW) return;  // debounce
+  tampered = true; tamperCount++; save();
+  Serial.printf("[tamper] case opened (#%u): kit locked until the installer resets it\n", tamperCount);
+  say("Case opened", 4000);
+}
+
 void loop() {
+  checkLid();
   char k = keypad.getKey();
   if (k) {
     if (k >= '0' && k <= '9' && entry.length() < 12) entry += k;

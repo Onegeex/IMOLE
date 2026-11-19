@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { makeResetCode } from "../codes";
 import { Link } from "react-router-dom";
 import { isAddress, keccak256, toHex, type Address } from "viem";
 import { Connect, short } from "../components/Shell";
@@ -173,12 +174,41 @@ export function Installer() {
           </p>
           <p className="unlock-code key">{keyFor.key}</p>
           <button className="btn btn-small" onClick={() => navigator.clipboard?.writeText(keyFor.key)}>Copy key</button>
+          <TamperReset kit={keyFor.kit} deviceKey={keyFor.key} />
         </section>
       )}
 
       {attester && <VerifyCustomer busy={busy} act={act} />}
 
       <ListKit d={d} busy={busy} act={act} self={account} />
+    </div>
+  );
+}
+
+/** If the customer opens the kit's case, the controller locks and shows "LOCKED: tamper". After checking
+ *  the kit, the installer makes a one-time reset code from the device key. It never leaves this browser. */
+function TamperReset({ kit, deviceKey }: { kit: bigint; deviceKey: string }) {
+  const [count, setCount] = useState("1");
+  const [code, setCode] = useState<string | null>(null);
+  const make = async (e: FormEvent) => {
+    e.preventDefault();
+    const n = Number(count);
+    if (!Number.isInteger(n) || n < 1) return;
+    const c = await makeResetCode(deviceKey, kit, n);
+    setCode(`${c.slice(0, 4)} ${c.slice(4, 8)} ${c.slice(8)}`);
+  };
+  return (
+    <div className="tamper">
+      <h3>Tamper reset code</h3>
+      <p className="muted">
+        If the case is opened, the kit locks and the controller counts it. Check the kit in person, then enter the number on its screen
+        ("LOCKED tamper #1" means 1). Each code works once.
+      </p>
+      <form className="lookup-row" onSubmit={make}>
+        <input inputMode="numeric" aria-label="Tamper count" value={count} onChange={(e) => setCount(e.target.value.replace(/\D/g, ""))} />
+        <button className="btn">Make reset code</button>
+      </form>
+      {code && <p className="unlock-code">{code}</p>}
     </div>
   );
 }

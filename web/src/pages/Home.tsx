@@ -127,6 +127,23 @@ export function Home() {
         </ol>
       </section>
 
+      <section className="split cash">
+        <div>
+          <h2>Taking cash costs you 1%</h2>
+          <p className="muted">
+            Most customers will pay you in cash. You top up their kit from a small QUSDC float, and the contract sends 99% of it
+            straight back to you in the same transaction. You keep the cash. The customer never sees a wallet.
+          </p>
+        </div>
+        <div className="ledger" aria-label="Example: a customer pays 2,000 naira in cash">
+          <div><span>Customer hands you</span><strong>₦2,000 cash</strong></div>
+          <div><span>You top up their kit from your float</span><strong>−1.48 QUSDC</strong></div>
+          <div><span>Back to you, same transaction</span><strong>+1.46 QUSDC</strong></div>
+          <div className="ledger-total"><span>Your float after</span><strong>−0.0148 QUSDC, the 1% fee</strong></div>
+          <p className="muted small">At ₦1,354 per US$1. A float of a few dollars serves hundreds of top-ups. Shops and kiosks can top up for you too, and keep a margin like they do on airtime.</p>
+        </div>
+      </section>
+
       <section className="split">
         <div>
           <h2>Rules the installer can't break</h2>

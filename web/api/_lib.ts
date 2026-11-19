@@ -14,6 +14,11 @@
  *   mac16       = first 2 bytes of HMAC-SHA256(deviceKey, "imole:" + kitId + ":" + T10)
  *   code        = T10 * 65536 + mac16, as 12 decimal digits                     // < 2^39, fits in 12 digits
  *
+ * Tamper reset (installer only): if the kit's case is opened, the controller locks and counts the event.
+ * Only a reset code clears it, and each one works once:
+ *   T10 = RESET (2^23 - 2, reserved), mac16 = first 2 bytes of HMAC-SHA256(deviceKey, "imole-reset:" + kitId + ":" + tamperCount)
+ * The installer makes it from the kit's device key (Installers -> Controller key). The public code service never issues one.
+ *
  * The controller keeps time with its RTC (set from the chain's block time whenever it is online),
  * and only accepts a code whose T10 is later than the one it already holds, so old codes can't be
  * replayed. Five wrong codes lock the keypad for ten minutes (1-in-65,536 guess per try).
@@ -23,6 +28,7 @@ import { createPublicClient, fallback, http, parseAbi, type Address } from "viem
 
 export const EPOCH = 1767225600;
 export const FOREVER = 2 ** 23 - 1;
+export const RESET = 2 ** 23 - 2; // reserved for tamper reset codes
 
 export function deviceKey(masterHex: string, kitId: bigint | number): Buffer {
   return createHmac("sha256", Buffer.from(masterHex, "hex")).update(`imole-device-key:${kitId}`).digest();
@@ -30,13 +36,19 @@ export function deviceKey(masterHex: string, kitId: bigint | number): Buffer {
 
 export function t10For(unlockUntil: number): number {
   if (unlockUntil <= EPOCH) return 0;
-  return Math.min(FOREVER - 1, Math.floor((unlockUntil - EPOCH) / 600));
+  return Math.min(RESET - 1, Math.floor((unlockUntil - EPOCH) / 600));
 }
 
 export function makeCode(key: Buffer, kitId: bigint | number, t10: number): string {
   const mac = createHmac("sha256", key).update(`imole:${kitId}:${t10}`).digest();
   const mac16 = (mac[0] << 8) | mac[1];
   const v = BigInt(t10) * 65536n + BigInt(mac16);
+  return v.toString().padStart(12, "0");
+}
+
+export function makeResetCode(key: Buffer, kitId: bigint | number, tamperCount: number): string {
+  const mac = createHmac("sha256", key).update(`imole-reset:${kitId}:${tamperCount}`).digest();
+  const v = BigInt(RESET) * 65536n + BigInt((mac[0] << 8) | mac[1]);
   return v.toString().padStart(12, "0");
 }
 
