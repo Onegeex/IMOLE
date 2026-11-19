@@ -8,6 +8,7 @@ type Props = {
   secondsLeft: bigint;
   percentPaid: number;
   caption?: string;
+  loading?: boolean;
 };
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -16,7 +17,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * Styled after a Nigerian prepaid electricity meter: an LCD readout of how much
  * light is left, counting down live, on a solar-cell blue body.
  */
-export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption }: Props) {
+export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption, loading }: Props) {
   const [left, setLeft] = useState(Number(secondsLeft > 10n ** 12n ? 0n : secondsLeft));
   useEffect(() => {
     setLeft(Number(secondsLeft > 10n ** 12n ? 0n : secondsLeft));
@@ -35,7 +36,7 @@ export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption 
   const s = left % 60;
 
   return (
-    <figure className={`meter ${on ? "is-on" : "is-off"}`} aria-label={`Kit ${kitId} is ${on ? "powered" : "locked"}`}>
+    <figure className={`meter ${loading ? "is-loading" : on ? "is-on" : "is-off"}`} aria-label={`Kit ${kitId} is ${on ? "powered" : "locked"}`}>
       {flash > 0 && <span key={flash} className="charge-burst" aria-hidden="true" />}
       <div className="meter-top">
         <span className="meter-brand">Imole</span>
@@ -43,7 +44,12 @@ export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption 
         <span className={`lamp ${on ? "lamp-on" : ""}`} aria-hidden="true" />
       </div>
       <div className="lcd" role="timer" aria-live="off">
-        {owned ? (
+        {loading ? (
+          <div className="lcd-owned">
+            <span className="lcd-digits lcd-loading">--:--:--</span>
+            <span className="lcd-sub">Reading from QIE Mainnet…</span>
+          </div>
+        ) : owned ? (
           <div className="lcd-owned">
             <span className="lcd-digits">PAId</span>
             <span className="lcd-sub">Paid off. Power is on for good.</span>
@@ -75,7 +81,7 @@ export function Meter({ kitId, active, owned, secondsLeft, percentPaid, caption 
         )}
       </div>
       <div className="meter-foot">
-        <span className="meter-state">{owned ? "Owned by the customer" : on ? "Power on" : "Power off, payment due"}</span>
+        <span className="meter-state">{loading ? "Connecting" : owned ? "Owned by the customer" : on ? "Power on" : "Power off, payment due"}</span>
         <span className="meter-paid">
           <span className="paid-track">
             <span className="paid-fill" style={{ width: `${Math.min(100, percentPaid)}%` }} />

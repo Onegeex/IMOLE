@@ -388,3 +388,7 @@ body[data-power="owned"] .sky-sun { background: radial-gradient(circle, #ffd23f 
   .sky::before, .sky-sun, .sky-grid, .sky-sweep, .lamp-on, .charge-burst, .note { animation: none !important; }
   .paid-fill, .btn, .tabs::before { transition: none !important; }
 }
+
+.is-loading .lcd { background: var(--lcd-dark); color: #7f89a3; }
+.lcd-loading { animation: blink 1.4s steps(1, end) infinite; }
+@media (prefers-reduced-motion: reduce) { .lcd-loading { animation: none; } }

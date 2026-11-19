@@ -30,7 +30,7 @@ export const deployed = ADDR.payg !== "";
 
 export const publicClient = createPublicClient({
   chain: qie,
-  transport: fallback(qie.rpcUrls.default.http.map((u) => http(u, { timeout: 10_000 }))),
+  transport: fallback(qie.rpcUrls.default.http.map((u) => http(u, { timeout: 6_000, batch: { wait: 20 } })), { rank: { interval: 30_000 }, retryCount: 2 }),
 });
 
 export const explorerTx = (h: string) => `${qie.blockExplorers.default.url}/tx/${h}`;

@@ -18,9 +18,9 @@ export function Home() {
     if (!deployed) return;
     const load = async () => {
       try {
+        if (DEMO_KIT > 0n) readKitStatus(DEMO_KIT).then(setDemo).catch(() => {});
         const [s, d] = await Promise.all([readStats(), qusdcDecimals()]);
         setStats({ ...s, d });
-        if (DEMO_KIT > 0n) setDemo(await readKitStatus(DEMO_KIT));
       } catch {
         /* RPC hiccup: keep the last good values */
       }
@@ -73,6 +73,9 @@ export function Home() {
               percentPaid={demo.percentPaid}
               caption="Live from QIE Mainnet. This is the demo kit wired to the controller."
             />
+          ) : deployed && DEMO_KIT > 0n ? (
+            <Meter kitId={DEMO_KIT} active={false} owned={false} secondsLeft={0n} percentPaid={0} loading
+              caption="Live from QIE Mainnet. This is the demo kit wired to the controller." />
           ) : (
             <Meter
               kitId={7n}
