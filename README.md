@@ -11,7 +11,7 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 | | |
 |---|---|
 | Live app | https://imole-ten.vercel.app |
-| Demo video | `<link>` |
+| Demo video | [youtu.be/TDooahJcRK4](https://youtu.be/TDooahJcRK4) (3:32, narrated) |
 | ImolePAYG (QIE Mainnet) | [`0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD`](https://mainnet.qie.digital/address/0xae6501e9c96EaDFB835f11b581D8353cF5e7d8AD) |
 | ImoleKYC (QIE Mainnet) | [`0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1`](https://mainnet.qie.digital/address/0x98CcF6f3680D6ddB1c1192Dffc70A63383Ae54D1) |
 | Controller simulation | https://wokwi.com/projects/481132098048003073 |
@@ -20,7 +20,7 @@ Track: **Commerce & Real World**, QIE Hackathon 3.0 (Mainnet Edition).
 
 | Path | Time | What you need | What you'll see |
 |---|---|---|---|
-| A. Watch | 3 min | Nothing | The demo video: an installer lists a kit, the customer accepts, a payment in QIE turns the controller on, time runs out and the relay drops, a relative pays from another wallet and power returns. |
+| A. Watch | 3.5 min | Nothing | [The demo video](https://youtu.be/TDooahJcRK4): a locked kit on mainnet, a real payment split 99/1 in one transaction, the controller switching on, a cash top-up by an agent, an offline keypad code accepted with no internet, tamper lock and reset, a refused repossession, and live network numbers. |
 | B. Check it, no wallet | 2 min | A browser | Open the live app's home page: the meter at the top is the demo kit, read live from mainnet. Then open the **Trust proofs** below: real mainnet transactions where the installer tries to cheat and the contract refuses. |
 | C. Try it | 5 min | QIE Wallet with ~2 QIE | Open the demo kit's page and pay 1 QIE. The meter adds time within a few seconds, and the Wokwi controller turns on at its next poll. |
 | D. Read the code | 10 min | GitHub | Start with [`contracts/src/ImolePAYG.sol`](contracts/src/ImolePAYG.sol), then the tests in [`contracts/test`](contracts/test). |
